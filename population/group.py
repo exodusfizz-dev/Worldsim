@@ -6,7 +6,7 @@ class PopulationGroup:
         self.base_birth_rate = 0.0002
         self.base_death_rate = 0.00015
 
-    def tick(self):
+    def tick(self): # Simulate one time step - e.g. one week for now
         death_rate = self.base_death_rate * (1.0 - self.healthcare)
 
         births = self.size * self.base_birth_rate
