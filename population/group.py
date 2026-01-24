@@ -16,3 +16,5 @@ class PopulationGroup:
 
         self.last_births = self.births
         self.last_deaths = self.deaths
+
+        

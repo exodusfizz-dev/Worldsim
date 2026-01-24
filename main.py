@@ -11,6 +11,10 @@ def main():
 
         for g in city.get_population_data():
             print(f"Group {g['group']}: size = {int(round(g['size']))}, healthcare = {g['healthcare']}")
-            
+
+        for migration in g['migrations']:
+            from_group, amount, to_group = migration
+            print(f"{from_group} -> {to_group}, amount: {amount}")
+
 if __name__ == "__main__":
     main()
