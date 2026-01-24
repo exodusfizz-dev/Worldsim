@@ -4,5 +4,5 @@ class City:
 
     def tick(self):
         for group in self.populations:
-            group.tick()
+            group.tick()        
         self.total_population = sum(group.size for group in self.populations)
