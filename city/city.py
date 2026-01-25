@@ -41,7 +41,7 @@ class City:
 
     def group_migration(self, group, healthcare):
         '''Migrate a small portion of a population group to a preexisting group with better healthcare.'''
-        better_groups = [g for g in self.populations if g.healthcare > healthcare]
+        better_groups = [g for g in self.populations if g.healthcare * g.healthcare_modifier> healthcare]
         if better_groups:
             target_group = better_groups[0]  # Currently selects the first better group found; selection criteria will be refined later
             migrating_size = group.size * self.base_migration_rate
