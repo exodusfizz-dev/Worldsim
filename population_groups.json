@@ -1,0 +1,28 @@
+{"cities": [
+    {
+    "name": "London",
+    "groups": [
+        {
+        "size": 1000,
+        "base_healthcare": 0.7,
+        "healthcare_capacity": 1100
+       },
+       {
+        "size": 500,
+        "base_healthcare": 0.9,
+        "healthcare_capacity": 600
+       },
+       {
+        "size": 750,
+        "base_healthcare": 0.85,
+        "healthcare_capacity": 650
+       },
+       {
+        "size": 2000,
+        "base_healthcare": 0.4,
+        "healthcare_capacity": 1900
+       }
+    ]
+  }
+]
+}
