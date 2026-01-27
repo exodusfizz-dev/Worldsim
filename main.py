@@ -1,7 +1,5 @@
 
-from calendar import week
 from core import Core
-import core
 
 
 def main():

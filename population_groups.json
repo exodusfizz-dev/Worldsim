@@ -23,6 +23,31 @@
         "healthcare_capacity": 1900
        }
     ]
+  },
+  {
+    "name": "Berlin",
+    "groups": [
+        {
+        "size": 1010,
+        "base_healthcare": 0.7,
+        "healthcare_capacity": 1100
+       },
+       {
+        "size": 490,
+        "base_healthcare": 0.9,
+        "healthcare_capacity": 600
+       },
+       {
+        "size": 760,
+        "base_healthcare": 0.84,
+        "healthcare_capacity": 650
+       },
+       {
+        "size": 1990,
+        "base_healthcare": 0.4,
+        "healthcare_capacity": 1900
+       }
+    ]
   }
 ]
 }
