@@ -11,7 +11,7 @@ class City:
         self.migrations = []
 
         for i, group in enumerate(self.populations, 1):
-            migrated, target = self.group_migration(group, group.healthcare)
+            migrated, target = self.group_migration(group)
 
             if migrated > 0:
                 target_index = self.populations.index(target) + 1
@@ -41,9 +41,9 @@ class City:
         return summary
     
 
-    def group_migration(self, group, healthcare):
+    def group_migration(self, group):
         '''Migrate a small portion of a population group to a preexisting group with better healthcare.'''
-        better_groups = [g for g in self.populations if g.healthcare > healthcare * group.healthcare_modifier]
+        better_groups = [g for g in self.populations if g.migration_attractiveness > group.migration_attractiveness]
         if better_groups:
             target_group = better_groups[0]  # Currently selects the first better group found; selection criteria will be refined later
             migrating_size = group.size * self.base_migration_rate
