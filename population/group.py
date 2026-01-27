@@ -9,6 +9,8 @@ class PopulationGroup:
         self.base_birth_rate = 0.0002
         self.base_death_rate = 0.00015
 
+        self.migration_attractiveness = max(0.45 + (self.healthcare * 0.5), min(0.45 + (self.healthcare * 0.5), 1.0))
+
     def tick(self): # Simulate one time step - e.g. one week for now
         death_rate = self.base_death_rate * (1.0 - self.healthcare)
 
