@@ -17,12 +17,10 @@ class City:
                 target_index = self.populations.index(target) + 1
                 self.migrations.append((i, migrated, target_index))
         
-        self.total_population = sum(group.size for group in self.populations)
-        self.birth_total = sum(group.last_births for group in self.populations)
-        self.death_total = sum(group.last_deaths for group in self.populations)
+        self.update_pop_data()
         
 
-    def get_population_data(self):
+    def sum_population_data(self):
 
         """Returns dictionary summary of all population groups."""
         
@@ -35,7 +33,8 @@ class City:
                 'healthcare': group.healthcare,
                 'last_births': group.last_births,
                 'last_deaths': group.last_deaths,
-                'migrations': self.migrations 
+                'employment_rate': group.employment_rate,
+
             })
 
         return summary
@@ -54,3 +53,14 @@ class City:
             return migrating_size, target_group
         else:
             return 0, None
+        
+    def update_pop_data(self):
+        self.total_population = sum(group.size for group in self.populations)
+        self.birth_total = sum(group.last_births for group in self.populations)
+        self.death_total = sum(group.last_deaths for group in self.populations)
+
+        self.attractiveness = sum(group.migration_attractiveness for group in self.populations) / len(self.populations)
+
+        self.employment_rate = sum(group.employment_rate for group in self.populations) / len(self.populations)
+
+        self.productivity = sum(group.size * group.labour_productivity * group.employment_rate for group in self.populations)
