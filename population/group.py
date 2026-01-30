@@ -30,17 +30,18 @@ class PopulationGroup:
         if self.size / self.healthcare_capacity <= 1.0:
             self.healthcare_modifier = 1.05
         else:
-            self.healthcare_modifier = (self.healthcare_capacity / self.size) ** 1.1
+            self.healthcare_modifier = (self.healthcare_capacity / self.size) ** 1.2
 
-        self.healthcare = self.base_healthcare * self.healthcare_modifier
+        self.healthcare = min(self.base_healthcare * self.healthcare_modifier, 1.0)
 
-        self.migration_attractiveness = min(0.45 + (self.healthcare * 0.3) + (self.employment_rate * 0.2), max(0.45 + (self.healthcare * 0.3) + (self.employment_rate * 0.2), 1.0))
+        self.migration_attractiveness = min(1.0, max(0.0, 0.45 + (self.healthcare * 0.3) + (self.employment_rate * 0.2)))
 
     def update_demographics(self):
         
-        death_rate = self.base_death_rate * (1.0 - self.healthcare)
+        death_rate = self.base_death_rate * (1.001 - self.healthcare)
+        self.birth_rate = self.base_birth_rate * (1.0 - (self.employment_rate * 0.15))
 
-        self.births = self.size * self.base_birth_rate
+        self.births = self.size * self.birth_rate
         self.deaths = self.size * death_rate
 
         self.size += self.births - self.deaths
@@ -49,5 +50,5 @@ class PopulationGroup:
         self.last_deaths = self.deaths
 
     def update_employment(self):
-        self.employment_rate = 0.75 + (self.healthcare * 0.15)
+        self.employment_rate = 0.7 + (self.healthcare * 0.15)
         

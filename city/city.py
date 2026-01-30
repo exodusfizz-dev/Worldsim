@@ -1,5 +1,6 @@
 class City:
-    def __init__(self, populations):
+    def __init__(self, populations, name):
+        self.name = name
         self.populations = populations
         self.migrations = []
         self.base_migration_rate = 0.0005  # 0.05% migration rate

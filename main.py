@@ -11,9 +11,12 @@ def main():
         core.tick()
 
         print(f"Week {week+1}: ")
-        for province, provincename in core.provinces:
-            print(f"Province: {provincename}")
+
+        for province in core.provinces:
+
+            print(f"Province: {province.name}")
             for city, cityname in province.cities:
+                
                 print(f"{cityname}: \nPopulation = {int(city.total_population)} \nProductivity = {city.productivity:.2f}")
 
                 for g in city.sum_population_data():
@@ -25,7 +28,7 @@ def main():
                     )
 
                 for migration in city.migrations: # Prints migration data
-                    
+
                     from_group, amount, to_group = migration
                     print(f"{from_group} -> {to_group}, amount: {amount:.3f}")
 

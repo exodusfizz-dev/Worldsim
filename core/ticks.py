@@ -13,8 +13,8 @@ class Core:
             for province in data["provinces"]:
 
                 cities = []
-                province_name = province["name"]
                 province_area = province["area"]
+                province_name = province["name"]
 
                 for city in province["cities"]:
                     populations = []
@@ -24,13 +24,13 @@ class Core:
                         population = PopulationGroup(size=group["size"], healthcare=group["base_healthcare"], healthcare_capacity=group["healthcare_capacity"])
                         populations.append(population)
 
-                    city = City(populations)
-                    cities.append((city, city_name))
+                    city = City(populations, city_name)
+                    cities.append(city)
 
-                province = Province(cities, province_area)
-                self.provinces.append((province, province_name))
+                province = Province(cities, province_area, province_name)
+                self.provinces.append(province)
 
     def tick(self):
-        for province, _ in self.provinces:
+        for province in self.provinces:
             province.tick()
             
