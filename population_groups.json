@@ -7,18 +7,18 @@
         "name": "Edinburgh",
         "groups": [
             {
-            "size": 1000,
-            "base_healthcare": 0.7,
-            "healthcare_capacity": 1100
+            "size": 800,
+            "base_healthcare": 0.6,
+            "healthcare_capacity": 850
            },
            {
-            "size": 500,
-            "base_healthcare": 0.9,
+            "size": 300,
+            "base_healthcare": 0.95,
             "healthcare_capacity": 600
            },
            {
-            "size": 750,
-            "base_healthcare": 0.85,
+            "size": 700,
+            "base_healthcare": 0.87,
             "healthcare_capacity": 650
            },
            {
@@ -49,13 +49,13 @@
            },
            {
             "size": 760,
-            "base_healthcare": 0.84,
-            "healthcare_capacity": 650
+            "base_healthcare": 0.81,
+            "healthcare_capacity": 900
            },
            {
-            "size": 1990,
-            "base_healthcare": 0.4,
-            "healthcare_capacity": 1900
+            "size": 1900,
+            "base_healthcare": 0.46,
+            "healthcare_capacity": 2100
            }
         ]
       }
