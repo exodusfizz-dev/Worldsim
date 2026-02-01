@@ -1,9 +1,12 @@
+from core import CITY_CFG
+default_migration_rate = CITY_CFG['migration']['intergroup_rate']
+
 class City:
     def __init__(self, populations, name):
         self.name = name
         self.populations = populations
         self.migrations = []
-        self.base_migration_rate = 0.0005  # 0.05% migration rate
+        self.base_migration_rate = default_migration_rate  # 0.05% migration rate
 
     def tick(self):
         for group in self.populations: # City controls tick updates of all owned population groups
@@ -32,8 +35,8 @@ class City:
                 'group': i,
                 'size': group.size,
                 'healthcare': group.healthcare,
-                'last_births': group.last_births,
-                'last_deaths': group.last_deaths,
+                'last_births': group.births,
+                'last_deaths': group.deaths,
                 'employment_rate': group.employment_rate,
 
             })
@@ -55,10 +58,11 @@ class City:
         else:
             return 0, None
         
+        
     def update_pop_data(self):
         self.total_population = sum(group.size for group in self.populations)
-        self.birth_total = sum(group.last_births for group in self.populations)
-        self.death_total = sum(group.last_deaths for group in self.populations)
+        self.birth_total = sum(group.births for group in self.populations)
+        self.death_total = sum(group.deaths for group in self.populations)
 
         self.attractiveness = sum(group.migration_attractiveness for group in self.populations) / len(self.populations)
 
