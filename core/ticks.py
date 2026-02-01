@@ -6,6 +6,14 @@ from province import Province
 
 class Core:
     def __init__ (self):
+        self.build_sim()
+
+    def tick(self):
+        for province in self.provinces:
+            province.tick()
+            
+
+    def build_sim(self):
         self.provinces = []
         
         with open("population_groups.json") as f:
@@ -29,8 +37,3 @@ class Core:
 
                 province = Province(cities, province_area, province_name)
                 self.provinces.append(province)
-
-    def tick(self):
-        for province in self.provinces:
-            province.tick()
-            
