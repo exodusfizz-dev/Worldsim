@@ -1,9 +1,12 @@
 class Province:
-    def __init__(self, cities, area, name):
-
+    def __init__(self, cities, area, name, cfg, rng):
+        
+        self.rng = rng
+        self.cfg = cfg
         self.name = name
         self.area = area  # in square kilometers
         self.cities = cities 
+
 
 
     def tick(self):

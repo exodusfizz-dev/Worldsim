@@ -1,12 +1,16 @@
-from core import CITY_CFG
-default_migration_rate = CITY_CFG['migration']['intergroup_rate']
+
+
 
 class City:
-    def __init__(self, populations, name):
+    def __init__(self, populations, name, cfg, rng):
+        self.rng = rng
+        self.cfg = cfg
+        DEFAULT_MIGRATION_RATE = self.cfg.get('intergroup_rate', 0.0005)
+
         self.name = name
         self.populations = populations
         self.migrations = []
-        self.base_migration_rate = default_migration_rate  # 0.05% migration rate
+        self.base_migration_rate = DEFAULT_MIGRATION_RATE  # 0.05% migration rate
 
     def tick(self):
         for group in self.populations: # City controls tick updates of all owned population groups
