@@ -1,5 +1,10 @@
+import numpy as np
+import math
+
 class PopulationGroup:
-    def __init__(self, size, healthcare, healthcare_capacity):
+    def __init__(self, size, healthcare, healthcare_capacity, rng):
+        self.rng = rng
+
         self.size = size
 
         self.base_healthcare= healthcare  # 0.0–1.0
@@ -41,13 +46,21 @@ class PopulationGroup:
         death_rate = self.base_death_rate * (2.001 - (2 * self.healthcare))
         self.birth_rate = self.base_birth_rate * (1.0 - (self.employment_rate * 0.15 - self.healthcare * 0.1))
 
-        self.births = self.size * self.birth_rate
-        self.deaths = self.size * death_rate
+        expected_births = self.size * self.birth_rate
+        expected_deaths = self.size * death_rate
 
-        self.size += self.births - self.deaths
+        self.births = self._sample_count(expected_births)
+        self.deaths = self._sample_count(expected_deaths)
+
+        self.size += max(0, self.births - self.deaths)
 
 
 
     def update_employment(self):
         self.employment_rate = 0.7 + (self.healthcare * 0.15)
         
+    def _sample_count(self, expected_count):
+        '''Samples a count based on gaussian distribution around expected count. Uses numpy normal distribution.'''
+        stddev = math.sqrt(expected_count)
+        sample = self.rng.normal(loc=expected_count, scale=stddev)
+        return max(0, int(sample))

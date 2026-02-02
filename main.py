@@ -1,10 +1,16 @@
+from config import CONFIG
+from core import Core
 
-from core import Core, MAIN_CFG
+MAIN_CFG = CONFIG["main"]
 
 
 def main():
 
-    core = Core()
+    core = Core(
+    seed_cfg=CONFIG["seed"],
+    city_cfg=CONFIG["city"],
+    province_cfg=CONFIG["province"]
+    )
 
     for week in range(52):
 
@@ -22,7 +28,7 @@ def report(week, core):
             print(f"Province: {province.name}")
             for city in province.cities:
 
-                print(f"{city.name}: \nPopulation = {int(city.total_population)} \nProductivity = {city.productivity:.2f}, Births = {city.birth_total:.2f}, Deaths = {city.death_total:.2f}")
+                print(f"{city.name}: \nPopulation = {int(city.total_population)} \nProductivity = {city.productivity:.2f}, Births = {city.birth_total}, Deaths = {city.death_total}")
 
                 for g in city.sum_population_data():
                     print(

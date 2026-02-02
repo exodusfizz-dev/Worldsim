@@ -1,11 +1,13 @@
 CONFIG = {
     
-    "seed": 12345, # Random seed for later use
+    "seed": 
+        {"seed": 42,
+         "use": True}, # Random seed for later use
 
     "main":
         {"reporter":     # Controls reporting system; what is printed/saved and how often
             {"enabled": True, 
-            "save_interval": 1,
+            "save_interval": 4,
             }},
             
 
@@ -18,7 +20,7 @@ CONFIG = {
     "province": 
         {"migration": 
             {"enabled": False, 
-             "intercity_rate": 0.0001, # Decimal percentage of population migrating between cities each tick. Default = 0.0001 = 0.01%
+             "intercity_rate": 0.0001, # Decimal percentage of population migrating between cities each tick. Default = 0.0001 = 0.01% 
             }},
 
 

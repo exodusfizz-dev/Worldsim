@@ -7,24 +7,24 @@
         "name": "Edinburgh",
         "groups": [
             {
-            "size": 800,
+            "size": 80000,
             "base_healthcare": 0.6,
-            "healthcare_capacity": 850
+            "healthcare_capacity": 85000
            },
            {
-            "size": 300,
+            "size": 30000,
             "base_healthcare": 0.95,
-            "healthcare_capacity": 600
+            "healthcare_capacity": 60000
            },
            {
-            "size": 700,
+            "size": 70000,
             "base_healthcare": 0.87,
-            "healthcare_capacity": 650
+            "healthcare_capacity": 65000
            },
            {
-            "size": 2000,
+            "size": 200000,
             "base_healthcare": 0.4,
-            "healthcare_capacity": 1900
+            "healthcare_capacity": 190000
            }
         ]
       }
@@ -38,24 +38,24 @@
         "name": "Glasgow",
         "groups": [
             {
-            "size": 1010,
+            "size": 101000,
             "base_healthcare": 0.7,
-            "healthcare_capacity": 1100
+            "healthcare_capacity": 110000
            },
            {
-            "size": 490,
+            "size": 49000,
             "base_healthcare": 0.9,
-            "healthcare_capacity": 600
+            "healthcare_capacity": 60000
            },
            {
-            "size": 760,
+            "size": 76000,
             "base_healthcare": 0.81,
-            "healthcare_capacity": 900
+            "healthcare_capacity": 90000
            },
            {
-            "size": 1900,
+            "size": 190000,
             "base_healthcare": 0.46,
-            "healthcare_capacity": 2100
+            "healthcare_capacity": 210000
            }
         ]
       }
