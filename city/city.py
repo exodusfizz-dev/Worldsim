@@ -1,4 +1,5 @@
-
+import numpy as np
+import math
 
 
 class City:
@@ -16,14 +17,15 @@ class City:
         for group in self.populations: # City controls tick updates of all owned population groups
             group.tick()
 
-        self.migrations = []
+        if self.cfg.get('migration', {}).get('enabled', True):
+            self.migrations = []
 
-        for i, group in enumerate(self.populations, 1):
-            migrated, target = self.group_migration(group)
+            for i, group in enumerate(self.populations, 1):
+                migrated, target = self.group_migration(group)
 
-            if migrated > 0:
-                target_index = self.populations.index(target) + 1
-                self.migrations.append((i, migrated, target_index))
+                if migrated > 0:
+                    target_index = self.populations.index(target) + 1
+                    self.migrations.append((i, migrated, target_index))
         
         self.update_pop_data()
         
@@ -49,10 +51,17 @@ class City:
     
 
     def group_migration(self, group):
-        '''Migrate a small portion of a population group to a preexisting group with better healthcare.'''
+        '''
+        Migrate a small portion of a population group to a preexisting group with better attractiveness, based on factors including healthcare.
+        '''
+
+
         better_groups = [g for g in self.populations if g.migration_attractiveness > group.migration_attractiveness]
+        
         if better_groups:
-            target_group = better_groups[0]  # Currently selects the first better group found; selection criteria will be refined later
+
+            target_group = min(better_groups, key=lambda g: g.migration_attractiveness)
+
             migrating_size = group.size * self.base_migration_rate
             group.size -= migrating_size
             target_group.size += migrating_size

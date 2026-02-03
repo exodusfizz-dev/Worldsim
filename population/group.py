@@ -17,7 +17,7 @@ class PopulationGroup:
         self.employment_rate = 0.75 + (self.healthcare * 0.15)
         self.labour_productivity = 1.0
 
-        self.migration_attractiveness = min(0.45 + (self.healthcare * 0.3) + (self.employment_rate * 0.2), max(0.45 + (self.healthcare * 0.3) + (self.employment_rate * 0.2), 1.0))
+        self.migration_attractiveness = (self.healthcare * 0.3) + (self.employment_rate * 0.2)
 
 
 
@@ -39,7 +39,7 @@ class PopulationGroup:
 
         self.healthcare = min(self.base_healthcare * self.healthcare_modifier, 1.0)
 
-        self.migration_attractiveness = min(1.0, max(0.0, 0.45 + (self.healthcare * 0.3) + (self.employment_rate * 0.2)))
+        self.migration_attractiveness = (self.healthcare * 0.3) + (self.employment_rate * 0.2)
 
     def update_demographics(self):
         
