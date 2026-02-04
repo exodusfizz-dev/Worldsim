@@ -7,7 +7,7 @@ class PopulationGroup:
 
         self.size = size
 
-        self.base_healthcare= healthcare  # 0.0–1.0
+        self.base_healthcare = healthcare  # 0.0–1.0
         self.healthcare = healthcare
         self.healthcare_capacity = healthcare_capacity
 

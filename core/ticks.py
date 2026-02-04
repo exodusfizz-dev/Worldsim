@@ -3,6 +3,7 @@ from population import PopulationGroup
 from city import City
 from province import Province
 import numpy as np
+import migration
 
 class Core:
     def __init__(self, seed_cfg, city_cfg, province_cfg):
@@ -43,3 +44,5 @@ class Core:
 
                 province_obj = Province(cities, province_area, province_name, cfg=self.province_cfg, rng=self.rng)
                 self.provinces.append(province_obj)
+        
+    
