@@ -1,5 +1,6 @@
 from config import CONFIG
 from core import Core
+from city import CityData
 
 MAIN_CFG = CONFIG["main"]
 REPORTER_CFG = MAIN_CFG.get("reporter", {})
@@ -35,7 +36,7 @@ def report(week, core):
 
             print(f"{city.name}: \nPopulation = {int(city.total_population)} \nProductivity = {city.productivity:.2f}, Births = {city.birth_total}, Deaths = {city.death_total}")
 
-            for g in city.sum_population_data():
+            for g in CityData.sum_population_data(city):
                 print(
                     f"Group {g['group']}: "
                     f"size = {int(g['size'])}, "
