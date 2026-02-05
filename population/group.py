@@ -46,7 +46,7 @@ class PopulationGroup:
     def update_demographics(self):
         
         death_rate = self.base_death_rate * (2.001 - (2 * self.healthcare))
-        self.birth_rate = self.base_birth_rate * (1.0 - (self.employment_rate * 0.15 - self.healthcare * 0.1))
+        self.birth_rate = self.base_birth_rate * min((1.0 - (self.employment_rate * 0.15 - self.healthcare * 0.1)), 0)
 
         expected_births = self.size * self.birth_rate
         expected_deaths = self.size * death_rate
@@ -54,7 +54,7 @@ class PopulationGroup:
         self.births = self._sample_count(expected_births)
         self.deaths = self._sample_count(expected_deaths)
 
-        self.size += max(0, self.births - self.deaths)
+        self.size = max(0, self.size + self.births - self.deaths)
 
 
 
@@ -64,7 +64,7 @@ class PopulationGroup:
         self.employment_rate = self.employed / self.size
         
     def _sample_count(self, expected_count):
-        '''Samples a count based on gaussian distribution around expected count. Uses numpy normal distribution.'''
+        '''Samples a count based on normal distribution around expected count. Uses numpy normal distribution.'''
         stddev = math.sqrt(expected_count)
         sample = self.rng.normal(loc=expected_count, scale=stddev)
         return max(0, int(sample))

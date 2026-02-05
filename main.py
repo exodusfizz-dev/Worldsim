@@ -21,7 +21,7 @@ def main():
 
         core.tick()
 
-        if REPORTER_CFG.get('enabled') and week % REPORTER_CFG.get('save_interval', 1) == 0:
+        if REPORTER_CFG.get('enabled') and week +1 % REPORTER_CFG.get('save_interval', 1) == 0:
             
             report(week, core)
 
