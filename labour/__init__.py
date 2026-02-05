@@ -1,0 +1,1 @@
+from .labour_market import LabourMarket

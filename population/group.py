@@ -14,8 +14,10 @@ class PopulationGroup:
         self.base_birth_rate = 0.0002
         self.base_death_rate = 0.00015
         
-        self.employment_rate = 0.75 + (self.healthcare * 0.15)
+        self.employable = 0.75 + (self.healthcare * 0.15)
         self.labour_productivity = 1.0
+        self.employed = 0
+        self.employment_rate = 0
 
         self.migration_attractiveness = (self.healthcare * 0.3) + (self.employment_rate * 0.2)
 
@@ -57,7 +59,9 @@ class PopulationGroup:
 
 
     def update_employment(self):
-        self.employment_rate = 0.7 + (self.healthcare * 0.15)
+        self.employable = 0.7 + (self.healthcare * 0.15)
+
+        self.employment_rate = self.employed / self.size
         
     def _sample_count(self, expected_count):
         '''Samples a count based on gaussian distribution around expected count. Uses numpy normal distribution.'''
