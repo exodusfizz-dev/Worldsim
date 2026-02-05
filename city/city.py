@@ -29,7 +29,6 @@ class City:
             firms = self.firms
         )
 
-        self.employed = self.labour_market.clear_market(self.populations, self.firms)
         
         self.run_migrations()
         CityData.update_pop_data(self)

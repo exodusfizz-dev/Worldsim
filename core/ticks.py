@@ -10,6 +10,8 @@ class Core:
 
         if seed_cfg['use']:
             self.rng = np.random.default_rng(seed_cfg['seed'])
+        else:
+            self.rng = np.random.default_rng()
 
         self.city_cfg = city_cfg
         self.province_cfg = province_cfg
@@ -55,7 +57,7 @@ class Core:
                                          )
                         firms.append(firm_obj)
 
-                    city_obj = City(populations, city_name, cfg=self.city_cfg, rng=self.rng, firms = firms)
+                    city_obj = City(populations, city_name, cfg=self.city_cfg, rng=self.rng, firms=firms)
                     cities.append(city_obj)
 
                 province_obj = Province(cities, province_area, province_name, cfg=self.province_cfg, rng=self.rng)

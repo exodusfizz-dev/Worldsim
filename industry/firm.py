@@ -4,12 +4,12 @@ class Firm:
         self.production_capacity = production_capacity # Maximum production capacity
         self.capital = capital # Available capital for production
         self.ownership = ownership # Placeholder for ownership structure (state, corporate, cooperative)
-        self.wages = wage # Amount paid to default worker
+        self.wage = wage # Amount paid to default worker
         self.employed = 0
         self.total_productivity = 0
 
     def labour_demand(self):
-        return min(self.production_capacity, self.capital / self.wages)
+        return min(self.production_capacity, self.capital / self.wage)
     
     def update_total_productivity(self):
         self.total_productivity = self.productivity * self.employed
