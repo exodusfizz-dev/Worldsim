@@ -20,6 +20,10 @@ class City:
         self.migrations = []
         self.base_migration_rate = DEFAULT_MIGRATION_RATE  # 0.05% migration rate
 
+        self.inv = {}
+        for firm in firms:
+            self.inv.setdefault(firm.good, 0)
+
     def tick(self):
         for group in self.populations: # City controls tick updates of all owned population groups
             group.tick()
@@ -28,6 +32,13 @@ class City:
             populations = self.populations,
             firms = self.firms
         )
+
+        for firm in self.firms:
+            firm.tick()
+
+            if firm.ownership == "state":
+                self.inv[firm.good] += firm.transfer_to_city()
+                    
 
         
         self.run_migrations()

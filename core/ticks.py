@@ -20,6 +20,8 @@ class Core:
     def tick(self):
         for province in self.provinces:
             province.tick()
+
+
             
 
     def build_sim(self):
@@ -53,13 +55,14 @@ class Core:
                                         production_capacity = firm["production_capacity"],
                                         capital = firm["capital"],
                                         ownership = firm["ownership"],
-                                        wage = firm["wage"]
+                                        wage = firm["wage"],
+                                        good = firm["good"]
                                          )
                         firms.append(firm_obj)
 
                     city_obj = City(populations, city_name, cfg=self.city_cfg, rng=self.rng, firms=firms)
                     cities.append(city_obj)
-
+                    
                 province_obj = Province(cities, province_area, province_name, cfg=self.province_cfg, rng=self.rng)
                 self.provinces.append(province_obj)
         
