@@ -6,8 +6,8 @@ MAIN_CFG = CONFIG["main"]
 REPORTER_CFG = MAIN_CFG.get("reporter", {})
 
 
-def main():
-    try:
+def main(): 
+    try: # Core initialises whole simulation.
         core = Core(
             seed_cfg=CONFIG.get("seed"),
             city_cfg=CONFIG.get("city"),
@@ -21,7 +21,7 @@ def main():
 
         core.tick()
 
-        if REPORTER_CFG.get('enabled') and week +1 % REPORTER_CFG.get('save_interval', 1) == 0:
+        if REPORTER_CFG.get('enabled') and week +1 % REPORTER_CFG.get('report_interval', 1) == 0:
             
             report(week, core)
 
@@ -43,6 +43,17 @@ def report(week, core):
                     f"healthcare = {g['healthcare']:.3f}, "
                     f"employment_rate = {g['employment_rate']:.3f},"
                     )
+
+            for f in CityData.sum_firm_data(city):
+                print(
+                    f"Ownership: {f['ownership']}, "                    
+                    f"Good {f['good']}"
+                    f"Employed = {f['employed']}, "
+                    f"Total productivity = {g['total_productivity']},"         
+                )
+
+            for good, amount in city.inv:
+                print(good, amount)
 
             for migration in city.migrations: # Prints migration data
 

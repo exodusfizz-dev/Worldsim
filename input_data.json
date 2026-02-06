@@ -33,14 +33,16 @@
                 "production_capacity": 500000,
                 "capital": 3000000,
                 "ownership": "corporate",
-                "wage": 25
+                "wage": 25,
+                "good": "food"
             },
             {
                 "productivity": 1.2,
                 "production_capacity": 400000,
                 "capital": 2500000,
                 "ownership": "state",
-                "wage": 30
+                "wage": 30,
+                "good": "copper"
             }
         ]
       }
@@ -80,14 +82,16 @@
                 "production_capacity": 400000,
                 "capital": 3400000,
                 "ownership": "corporate",
-                "wage": 25
+                "wage": 25,
+                "good": "food"
             },
             {
                 "productivity": 1.7,
                 "production_capacity": 280000,
                 "capital": 2300000,
                 "ownership": "state",
-                "wage": 30
+                "wage": 30,
+                "good": "iron"
             }
           ]
       }

@@ -17,8 +17,7 @@ class CityData:
 
         self.employable = sum(group.employable for group in self.populations) / len(self.populations) # People of fit age and health to work
         
-        for firm in self.firms:
-            firm.update_total_productivity()
+
         self.productivity = sum(firm.total_productivity for firm in self.firms)
 
     def sum_population_data(self):
@@ -39,3 +38,17 @@ class CityData:
             })
 
         return summary
+    
+    def sum_firm_data(self):
+
+        '''Returns dictionary summary of all firms.'''
+
+        summary = []
+
+        for firm in self.firms:
+            summary.append ({
+                'ownership': firm.ownership,
+                'good': firm.good,
+                'employed': firm.employed,
+                'total_productivity': firm.total_productivity
+            })
