@@ -52,3 +52,5 @@ class CityData:
                 'employed': firm.employed,
                 'total_productivity': firm.total_productivity
             })
+
+        return summary

@@ -46,7 +46,7 @@ class PopulationGroup:
     def update_demographics(self):
         
         death_rate = self.base_death_rate * (2.001 - (2 * self.healthcare))
-        self.birth_rate = self.base_birth_rate * min((1.0 - (self.employment_rate * 0.15 - self.healthcare * 0.1)), 0)
+        self.birth_rate = self.base_birth_rate * max((1.0 - (self.employment_rate * 0.15 - self.healthcare * 0.1)), 0)
 
         expected_births = self.size * self.birth_rate
         expected_deaths = self.size * death_rate

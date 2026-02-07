@@ -2,6 +2,7 @@ from config import CONFIG
 from core import Core
 from city import CityData
 
+
 MAIN_CFG = CONFIG["main"]
 REPORTER_CFG = MAIN_CFG.get("reporter", {})
 
@@ -17,17 +18,16 @@ def main():
         print(f"Failed to load config: {e}")
         return
 
-    for week in range(52):
+    for week in range(1, 52):
 
         core.tick()
 
-        if REPORTER_CFG.get('enabled') and week +1 % REPORTER_CFG.get('report_interval', 1) == 0:
+        if REPORTER_CFG.get('enabled', True) and week % REPORTER_CFG.get('report_interval', 1) == 0:
             
             report(week, core)
 
-
 def report(week, core):
-    print(f"Week {week+1}: ")
+    print(f"Week {week}: ")
 
     for province in core.provinces:
 
@@ -47,12 +47,12 @@ def report(week, core):
             for f in CityData.sum_firm_data(city):
                 print(
                     f"Ownership: {f['ownership']}, "                    
-                    f"Good {f['good']}"
+                    f"Good: {f['good']}, "
                     f"Employed = {f['employed']}, "
-                    f"Total productivity = {g['total_productivity']},"         
+                    f"Total productivity = {f['total_productivity']:.0f},"         
                 )
 
-            for good, amount in city.inv:
+            for good, amount in city.inv.items():
                 print(good, amount)
 
             for migration in city.migrations: # Prints migration data
@@ -63,3 +63,4 @@ def report(week, core):
 
 if __name__ == "__main__":  # Temporary main function for testing
     main()
+
