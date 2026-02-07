@@ -1,9 +1,9 @@
 import json
-from population import PopulationGroup
 from city import City
 from province import Province
 import numpy as np
 from industry import Firm
+from population import PopulationGroup
 
 class Core:
     def __init__(self, seed_cfg, city_cfg, province_cfg):
