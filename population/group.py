@@ -68,3 +68,7 @@ class PopulationGroup:
         stddev = math.sqrt(expected_count)
         sample = self.rng.normal(loc=expected_count, scale=stddev)
         return max(0, int(sample))
+    
+    def compute_food_consumption(self):
+        food_consumption = self.size * (3 - self.healthcare)
+        return food_consumption

@@ -31,7 +31,7 @@ def report(week, core):
 
     for province in core.provinces:
 
-        print(f"Province: {province.name}")
+        print(f"------\nProvince: {province.name}")
         for city in province.cities:
 
             print(f"{city.name}: \nPopulation = {int(city.total_population)} \nProductivity = {city.productivity:.2f}, Births = {city.birth_total}, Deaths = {city.death_total}")
@@ -53,7 +53,8 @@ def report(week, core):
                 )
 
             for good, amount in city.inv.items():
-                print(good, amount)
+                print(f"Good: {good}, Kgs: {amount:.2f}")
+            print(f"Food deficit: {city.last_food_deficit:.2f} Kgs")
 
             for migration in city.migrations: # Prints migration data
 
