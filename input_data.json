@@ -29,16 +29,16 @@
         ],
         "firms": [
             {
-                "productivity": 1.5,
-                "production_capacity": 500000,
+                "productivity": 15,
+                "production_capacity": 3000000,
                 "capital": 3000000,
                 "ownership": "state",
                 "wage": 25,
                 "good": "food"
             },
             {
-                "productivity": 1.2,
-                "production_capacity": 400000,
+                "productivity": 12,
+                "production_capacity": 2500000,
                 "capital": 2500000,
                 "ownership": "state",
                 "wage": 30,
@@ -78,16 +78,16 @@
         ],
         "firms": [
             {
-                "productivity": 1.3,
-                "production_capacity": 400000,
+                "productivity": 13,
+                "production_capacity": 3000000,
                 "capital": 3400000,
                 "ownership": "state",
                 "wage": 25,
                 "good": "food"
             },
             {
-                "productivity": 1.7,
-                "production_capacity": 280000,
+                "productivity": 17,
+                "production_capacity": 1900000,
                 "capital": 2300000,
                 "ownership": "state",
                 "wage": 30,

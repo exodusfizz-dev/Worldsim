@@ -27,7 +27,7 @@ def main():
             report(week, core)
 
 def report(week, core):
-    print(f"Week {week}: ")
+    print(f"------\n------\nWeek {week}: ")
 
     for province in core.provinces:
 
@@ -54,7 +54,11 @@ def report(week, core):
 
             for good, amount in city.inv.items():
                 print(f"Good: {good}, Kgs: {amount:.2f}")
-            print(f"Food deficit: {city.last_food_deficit:.2f} Kgs")
+
+            if city.last_food_deficit:
+                print(f"Food deficit: {city.last_food_deficit:.2f} Kgs")
+            else:
+                print("No food deficit")
 
             for migration in city.migrations: # Prints migration data
 
