@@ -13,7 +13,6 @@ class CityData:
         self.birth_total = sum(group.births for group in self.populations)
         self.death_total = sum(group.deaths for group in self.populations)
 
-        self.attractiveness = sum(group.migration_attractiveness for group in self.populations) / len(self.populations)
 
         self.employable = sum(group.employable for group in self.populations) / len(self.populations) # People of fit age and health to work
         
