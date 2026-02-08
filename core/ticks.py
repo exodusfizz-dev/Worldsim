@@ -21,7 +21,6 @@ class Core:
         for province in self.provinces:
             province.tick()
 
-
             
 
     def build_sim(self):
@@ -40,7 +39,7 @@ class Core:
                     firms = []
                     city_name = city["name"]
 
-                    for group in city["groups"]:
+                    for group in city["groups"]: # Creates list of population groups in city
                         population_obj = PopulationGroup(
                                                          size=group["size"], 
                                                          healthcare=group["base_healthcare"], 
@@ -49,14 +48,15 @@ class Core:
                                                          )
                         populations.append(population_obj)
 
-                    for firm in city["firms"]:
+                    for firm in city["firms"]: # Creates list of firms in city
                         firm_obj = Firm(
                                         productivity = firm["productivity"],
                                         production_capacity = firm["production_capacity"],
                                         capital = firm["capital"],
                                         ownership = firm["ownership"],
                                         wage = firm["wage"],
-                                        good = firm["good"]
+                                        good = firm["good"],
+                                        rng = self.rng
                                          )
                         firms.append(firm_obj)
 

@@ -7,7 +7,7 @@ CONFIG = {
     "main":
         {"reporter":     # Controls reporting system; what is printed/saved and how often
             {"enabled": True, 
-            "report_interval": 1,
+            "report_interval": 6,
             }},
             
 

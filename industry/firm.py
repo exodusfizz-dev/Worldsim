@@ -1,5 +1,8 @@
+import math
+import numpy as np
+
 class Firm:
-    def __init__(self, productivity, production_capacity, capital, ownership, wage, good):
+    def __init__(self, productivity, production_capacity, capital, ownership, wage, good, rng):
         self.productivity = productivity # Output per unit of labour
         self.production_capacity = production_capacity # Maximum production capacity
 
@@ -13,8 +16,11 @@ class Firm:
         self.inventory = 0 # How many of the good are stored.
         self.good = good # What good this firm produces. Each firm produces one good only. 
 
+        self.rng = rng
+
     def labour_demand(self):
-        return min(self.production_capacity / self.productivity, self.capital / self.wage)
+        return min(self.production_capacity / self.productivity, self.capital / self.wage)  
+    '''Limiting factor of employment is either the production capacity / output per worker, or the capital available to pay workers'''
     
     def update_total_productivity(self):
         self.total_productivity = min(self.productivity * self.employed, self.production_capacity)
@@ -22,7 +28,7 @@ class Firm:
         return self.total_productivity
 
     def produce(self):
-        self.inventory += self.total_productivity
+        self.inventory += self._sample_production(expected_production = self.total_productivity)
 
 
     def tick(self):
@@ -33,6 +39,12 @@ class Firm:
         amount = self.inventory
         self.inventory = 0
         return amount
+    
+    def _sample_production(self, expected_production):
+        '''Samples a count based on normal distribution around expected count. Uses numpy normal distribution.'''
+        stddev = math.sqrt(expected_production)
+        sample = self.rng.normal(loc=expected_production, scale=stddev)
+        return max(0, int(sample))
 
 
 
