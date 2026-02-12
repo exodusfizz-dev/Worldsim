@@ -1,8 +1,8 @@
 import numpy as np
 import math
-from migration import Migration
-from .city_data import CityData
-from labour import LabourMarket
+from model.migration import Migration
+from model.city.city_data import CityData
+from model.labour import LabourMarket
 
 
 class City:
