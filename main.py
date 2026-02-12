@@ -1,32 +1,42 @@
+'''
+This module calls core to run the simulation, and prints outputs
+'''
 from config import CONFIG
-from core import Core
-from city import CityData
+from model.core import Core
 
 
 MAIN_CFG = CONFIG["main"]
 REPORTER_CFG = MAIN_CFG.get("reporter", {})
 
 
-def main(): 
-    try: # Core initialises whole simulation.
-        core = Core(
-            seed_cfg=CONFIG.get("seed"),
-            city_cfg=CONFIG.get("city"),
-            province_cfg=CONFIG.get("province"),
+def main():
+    '''
+    Runs whole simulation. Also handles output by calling report function
+    '''
+ # Core initialises whole simulation.
+    core = Core(
+        seed_cfg=CONFIG.get("seed"),
+        city_cfg=CONFIG.get("city"),
+        province_cfg=CONFIG.get("province"),
         )
-    except Exception as e:
-        print(f"Failed to load config: {e}")
-        return
+
+    core.build_sim()
 
     for week in range(1, 52):
 
         core.tick()
 
         if REPORTER_CFG.get('enabled', True) and week % REPORTER_CFG.get('report_interval', 1) == 0:
-            
+
             report(week, core)
 
 def report(week, core):
+    '''
+    Outputs data for main
+    
+    :param week: week number (int)
+    :param core: core object
+    '''
     print(f"------\n------\nWeek {week}: ")
 
     for province in core.provinces:
@@ -34,9 +44,13 @@ def report(week, core):
         print(f"------\nProvince: {province.name}")
         for city in province.cities:
 
-            print(f"{city.name}: \nPopulation = {int(city.total_population)} \nProductivity = {city.productivity:.2f}, Births = {city.birth_total}, Deaths = {city.death_total}")
+            print(f"{city.name}: \nPopulation = {int(city.total_population)}"\
+                f"\nProductivity = {city.productivity:.2f}, "\
+                f"Births = {city.birth_total}, "\
+                f"Deaths = {city.death_total}"
+                )
 
-            for g in CityData.sum_population_data(city):
+            for g in city.city_data.sum_population_data():
                 print(
                     f"Group {g['group']}: "
                     f"size = {int(g['size'])}, "
@@ -44,7 +58,7 @@ def report(week, core):
                     f"employment_rate = {g['employment_rate']:.3f},"
                     )
 
-            for f in CityData.sum_firm_data(city):
+            for f in city.city_data.sum_firm_data():
                 print(
                     f"Ownership: {f['ownership']}, "                    
                     f"Good: {f['good']}, "
@@ -64,8 +78,7 @@ def report(week, core):
 
                 from_group, amount, to_group = migration
                 print(f"{from_group} -> {to_group}, amount: {amount:.3f}")
-                    
+
 
 if __name__ == "__main__":  # Temporary main function for testing
     main()
-
