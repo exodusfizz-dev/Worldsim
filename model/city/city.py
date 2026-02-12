@@ -24,6 +24,8 @@ class City:
         for firm in firms:
             self.inv.setdefault(firm.good, 0) # Add each good that firms produce for this city to a dictionary
 
+        self.city_data = CityData(self)
+
     def tick(self):
         for group in self.populations: # City controls tick updates of all owned population groups
             group.tick()
@@ -35,9 +37,9 @@ class City:
         )
 
         for firm in self.firms: 
-            firm.tick() # Tick updates productivity after employement and makes the firm produce goods. 
-            if firm.good not in self.inv:
-                self.inv.setdefault(firm.good, 0) # Make sure the good is in the city before transferring it
+            firm.tick() # Tick updates productivity after employement and makes the firm produce goods.
+            if firm.good not in self.inv: # Make sure the good is in the city before transferring it
+                self.inv.setdefault(firm.good, 0)
 
             if firm.ownership == "state":
                 self.inv[firm.good] += firm.transfer_to_city() # SOEs transfer their inventory to the city.
@@ -55,7 +57,7 @@ class City:
                     
         
         self.run_migrations() # Runs migrations between population groups
-        CityData.update_pop_data(self) #
+        self.city_data.update_pop_data() 
         
 
 

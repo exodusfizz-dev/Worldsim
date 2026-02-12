@@ -15,7 +15,6 @@ class Core:
 
         self.city_cfg = city_cfg
         self.province_cfg = province_cfg
-        self.build_sim()
 
     def tick(self):
         for province in self.provinces:

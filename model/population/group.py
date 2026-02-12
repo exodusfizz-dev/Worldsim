@@ -10,11 +10,15 @@ class PopulationGroup:
         self.base_healthcare = healthcare  # 0.0–1.0
         self.healthcare = healthcare
         self.healthcare_capacity = healthcare_capacity
+        self.sick_rate = 0.02
+        self.sick = 0
+
 
         self.base_birth_rate = 0.0002
         self.base_death_rate = 0.00015
         
-        self.employable = 0.75 + (self.healthcare * 0.15)
+        self.employable = 0.7 - self.sick_rate
+        self.base_sickness_rate = 0.025
         self.labour_productivity = 1.0
         self.employed = 0
         self.employment_rate = 0
@@ -27,6 +31,7 @@ class PopulationGroup:
         
         self.update_demographics()
 
+        self.update_sick()
         self.update_healthcare()
 
         self.update_employment()
@@ -34,7 +39,7 @@ class PopulationGroup:
 
     def update_healthcare(self):
 
-        if self.size / self.healthcare_capacity <= 1.0:
+        if self.sick / self.healthcare_capacity <= 1.0:
             self.healthcare_modifier = 1.05
         else:
             self.healthcare_modifier = (self.healthcare_capacity / self.size) ** 1.3
@@ -56,10 +61,12 @@ class PopulationGroup:
 
         self.size = max(0, self.size + self.births - self.deaths)
 
-
+    def update_sick(self):
+        self.sick = self.size * (self.base_sickness_rate / self.healthcare)
+        self.sick_rate = self.sick/self.size
 
     def update_employment(self):
-        self.employable = 0.7 + (self.healthcare * 0.15)
+        self.employable = 0.7 - self.sick_rate 
 
         self.employment_rate = self.employed / self.size
         
