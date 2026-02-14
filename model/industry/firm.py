@@ -14,7 +14,7 @@ class Firm:
         self.total_productivity = 0
 
         self.inventory = 0 # How many of the good are stored.
-        self.good = good # What good this firm produces. Each firm produces one good only. 
+        self.good = good # What good this firm produces. Each firm produces one good only.
 
         self.rng = rng
 

@@ -1,16 +1,22 @@
 '''
 Report function is part of the visualisation module. It print data from the model, called in main.py
 '''
+
 def report(week, core):
+    print(f"------\n------\nWeek {week}: ")
+    for country in core.countries:
+        print(f"Country: {country.name}")
+        report_provinces(country)
+
+def report_provinces(country):
     '''
     Outputs data for main
     
     :param week: week number (int)
-    :param core: core object
+    :param country: country object
     '''
-    print(f"------\n------\nWeek {week}: ")
 
-    for province in core.provinces:
+    for province in country.provinces:
 
         print(f"------\nProvince: {province.name}")
         for city in province.cities:
