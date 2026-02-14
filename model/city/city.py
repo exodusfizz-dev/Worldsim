@@ -41,23 +41,12 @@ class City:
             if firm.good not in self.inv: # Make sure the good is in the city before transferring it
                 self.inv.setdefault(firm.good, 0)
 
-            if firm.ownership == "state":
-                self.inv[firm.good] += firm.transfer_to_city() # SOEs transfer their inventory to the city.
+            if firm.ownership == "state": # SOEs transfer their inventory to the city.
+                self.inv[firm.good] += firm.transfer_to_city()
 
-
-        food_needed = sum(g.compute_food_consumption() for g in self.populations)
-
-        if food_needed < self.inv["food"]:
-            self.inv["food"] -= food_needed
-            self.last_food_deficit = None
-        else:
-            self.last_food_deficit = food_needed - self.inv["food"] # To be used for imports later
-            self.migration_attractiveness = 0 # No one wants to migrate to a starving city. They aren't allowed in anyway.
-            self.inv["food"] = 0
-                    
-        
+        self.consume_food()
         self.run_migrations() # Runs migrations between population groups
-        self.city_data.update_pop_data() 
+        self.city_data.update_pop_data()
         
 
 
@@ -72,5 +61,20 @@ class City:
                 if migrated_amount > 0:
                     target_index = self.populations.index(target) + 1
                     self.migrations.append((i, migrated_amount, target_index))
-    
+
+    def consume_food(self):
+        '''
+        Consumes food based on population. Calculates deficit, if any.
+        '''
+
+        food_needed = sum(g.compute_food_consumption() for g in self.populations)
+        if food_needed < self.inv["food"]:
+            self.inv["food"] -= food_needed
+            self.last_food_deficit = None
+        else:
+            self.last_food_deficit = food_needed - self.inv["food"] # To be used for imports later
+            self.migration_attractiveness = 0 # No one wants to migrate to a starving city. They aren't allowed in anyway.
+            self.inv["food"] = 0
+            for g in self.populations:
+                g.starve(food_deficit = (self.last_food_deficit // len(self.populations)))
 
