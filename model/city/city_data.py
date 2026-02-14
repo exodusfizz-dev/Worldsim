@@ -8,6 +8,7 @@ class CityData:
     '''
     def __init__(self, city):
         self.city = city
+        self.data = []
 
     def update_pop_data(self):
         '''
@@ -22,6 +23,8 @@ class CityData:
         c.employable = sum(group.employable for group in c.populations) / len(c.populations)
 
         c.productivity = sum(firm.total_productivity for firm in c.firms)
+
+        self.store_data()
 
     def sum_population_data(self):
 
@@ -58,4 +61,31 @@ class CityData:
             })
 
         return summary
-    
+
+    def sum_city_data(self):
+
+        c = self.city
+
+        summary = {
+            'population': c.total_population,
+            'births': c.birth_total,
+            'deaths': c.death_total,
+            'employable': c.employable,
+            'productivity': c.productivity,
+        }
+
+        return summary
+
+    def store_data(self):
+        self.data.append({
+            'city_data':
+                self.sum_city_data(),
+
+            'population_data':
+                self.sum_population_data(),
+
+            'firm_data':
+                self.sum_firm_data()
+
+        }
+        )
