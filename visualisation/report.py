@@ -2,7 +2,7 @@
 Report function is part of the visualisation module. It print data from the model, called in main.py
 '''
 
-def report(week, core):
+def report(week, core, spr):
     '''
     Outputs data for main. Reporting on provinces can be enabled or disabled in config.
     
@@ -12,7 +12,8 @@ def report(week, core):
     print(f"------\n------\nWeek {week}: ")
     for country in core.countries:
         print(f"Country: {country.name}")
-        report_provinces(country, week)
+        if spr:
+            report_provinces(country, week)
 
 def report_provinces(country, week):
     '''
