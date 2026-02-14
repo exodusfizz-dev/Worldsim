@@ -3,14 +3,20 @@ Report function is part of the visualisation module. It print data from the mode
 '''
 
 def report(week, core):
+    '''
+    Outputs data for main. Reporting on provinces can be enabled or disabled in config.
+    
+    :param week: week number (int)
+    :param core: core object - the whole sim
+    '''
     print(f"------\n------\nWeek {week}: ")
     for country in core.countries:
         print(f"Country: {country.name}")
-        report_provinces(country)
+        report_provinces(country, week)
 
-def report_provinces(country):
+def report_provinces(country, week):
     '''
-    Outputs data for main
+    Outputs data for main. Can be disabled in config (called by the main report)
     
     :param week: week number (int)
     :param country: country object
@@ -27,7 +33,7 @@ def report_provinces(country):
                 f"Deaths = {city.death_total}"
                 )
 
-            for g in city.city_data.sum_population_data():
+            for g in city.city_data.data[week-1]['population_data']:
                 print(
                     f"Group {g['group']}: "
                     f"size = {int(g['size'])}, "
@@ -36,7 +42,7 @@ def report_provinces(country):
                     f"sick rate = {g['sick_rate']:.3f}"
                     )
 
-            for f in city.city_data.sum_firm_data():
+            for f in city.city_data.data[week-1]['firm_data']:
                 print(
                     f"Ownership: {f['ownership']}, "                    
                     f"Good: {f['good']}, "
