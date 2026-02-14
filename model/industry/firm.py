@@ -20,10 +20,12 @@ class Firm:
 
     def labour_demand(self):
         return min(self.production_capacity / self.productivity, self.capital / self.wage)  
-    '''Limiting factor of employment is either the production capacity / output per worker, or the capital available to pay workers'''
+    '''Limiting factor of employment is either:
+    The production capacity / output per worker,
+    Or the capital available to pay workers'''
     
     def update_total_productivity(self):
-        self.total_productivity = min(self.productivity * self.employed, self.production_capacity)
+        self.total_productivity = max(min(self.productivity * self.employed, self.production_capacity), 0)
 
         return self.total_productivity
 
@@ -42,7 +44,10 @@ class Firm:
     
     def _sample_production(self, expected_production):
         '''Samples a count based on normal distribution around expected count. Uses numpy normal distribution.'''
-        stddev = math.sqrt(expected_production)
+        if expected_production > 0:
+            stddev = math.sqrt(expected_production)
+        else:
+            return 0
         sample = self.rng.normal(loc=expected_production, scale=stddev)
         return max(0, int(sample))
 

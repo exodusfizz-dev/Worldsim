@@ -18,15 +18,14 @@ class CityData:
         c.birth_total = sum(group.births for group in c.populations)
         c.death_total = sum(group.deaths for group in c.populations)
 
-        # People of fit age and health to work
+        # People of fit age and health to work as decimal.
         c.employable = sum(group.employable for group in c.populations) / len(c.populations)
 
         c.productivity = sum(firm.total_productivity for firm in c.firms)
 
     def sum_population_data(self):
 
-        """Returns dictionary summary of all population groups."""
-
+        '''Returns dictionary summary of all population groups.'''
         c = self.city
         summary = []
 
@@ -38,7 +37,7 @@ class CityData:
                 'last_births': group.births,
                 'last_deaths': group.deaths,
                 'employment_rate': group.employment_rate,
-
+                'sick_rate': group.sick_rate
             })
 
         return summary

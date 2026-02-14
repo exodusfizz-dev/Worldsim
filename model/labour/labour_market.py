@@ -4,7 +4,7 @@ class LabourMarket:
         self.country_policy = country_policy
 
     def compute_supply(self, populations):
-        group_supply = [int(group.size * group.employable) for group in populations]
+        group_supply = [int(group.size * max(group.employable, 0)) for group in populations]
         total_supply = sum(group_supply)
         return group_supply, total_supply
     

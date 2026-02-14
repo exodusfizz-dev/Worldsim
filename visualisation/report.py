@@ -1,4 +1,6 @@
-
+'''
+Report function is part of the visualisation module. It print data from the model, called in main.py
+'''
 def report(week, core):
     '''
     Outputs data for main
@@ -24,7 +26,8 @@ def report(week, core):
                     f"Group {g['group']}: "
                     f"size = {int(g['size'])}, "
                     f"healthcare = {g['healthcare']:.3f}, "
-                    f"employment_rate = {g['employment_rate']:.3f},"
+                    f"employment_rate = {g['employment_rate']:.3f}, "
+                    f"sick rate = {g['sick_rate']:.3f}"
                     )
 
             for f in city.city_data.sum_firm_data():
