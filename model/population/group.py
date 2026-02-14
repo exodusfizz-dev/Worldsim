@@ -1,5 +1,4 @@
-import numpy as np
-import math
+from model.core.random import _sample_normal
 
 class PopulationGroup:
     def __init__(self, size, healthcare, healthcare_capacity, rng):
@@ -56,8 +55,8 @@ class PopulationGroup:
         expected_births = self.size * self.birth_rate
         expected_deaths = self.size * death_rate
 
-        self.births = self._sample_count(expected_births)
-        self.deaths = self._sample_count(expected_deaths)
+        self.births = _sample_normal(expected=expected_births, rng=self.rng)
+        self.deaths = _sample_normal(expected=expected_deaths, rng=self.rng)
 
         self.size = max(0, self.size + self.births - self.deaths)
 
@@ -69,12 +68,6 @@ class PopulationGroup:
         self.employable = 0.7 - self.sick_rate
 
         self.employment_rate = self.employed / self.size
-
-    def _sample_count(self, expected_count):
-        '''Samples a count based on normal distribution around expected count. Uses numpy normal distribution.'''
-        stddev = math.sqrt(expected_count)
-        sample = self.rng.normal(loc=expected_count, scale=stddev)
-        return max(0, int(sample))
 
     def compute_food_consumption(self):
         food_consumption = self.size * (3 - self.sick_rate)
