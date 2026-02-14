@@ -1,9 +1,12 @@
-{"provinces": [
+{"countries": [
   {
-    "name": "Lothian",
-    "area": 1500,
-    "cities": [
-      {
+    "name": "Scotland",
+    "provinces": [
+    {
+      "name": "Lothian",
+      "area": 1500,
+      "cities": [
+        {
         "name": "Edinburgh",
         "groups": [
             {
@@ -26,8 +29,8 @@
             "base_healthcare": 0.4,
             "healthcare_capacity": 19000
            }
-        ],
-        "firms": [
+          ],
+          "firms": [
             {
                 "productivity": 17,
                 "production_capacity": 3000000,
@@ -44,15 +47,15 @@
                 "wage": 30,
                 "good": "copper"
             }
-        ]
-      }
-    ]
-  },
-  {
-    "name": "Strathclyde",
-    "area": 3500,
-    "cities": [
-      {
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Strathclyde",
+      "area": 3500,
+      "cities": [
+        {
         "name": "Glasgow",
         "groups": [
             {
@@ -75,26 +78,27 @@
             "base_healthcare": 0.46,
             "healthcare_capacity": 3000
            }
-        ],
-        "firms": [
-            {
+          ],
+          "firms": [
+              {
                 "productivity": 13,
                 "production_capacity": 3000000,
                 "capital": 3400000,
                 "ownership": "state",
                 "wage": 25,
                 "good": "food"
-            },
-            {
+              },
+              {
                 "productivity": 0.15,
                 "production_capacity": 1900000,
                 "capital": 2300000,
                 "ownership": "state",
                 "wage": 30,
                 "good": "iron"
-            }
-          ]
-      }
-    ]
-  }
+              }
+            ]
+        }
+      ]
+    }
+  ]}
 ]}

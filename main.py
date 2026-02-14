@@ -19,6 +19,7 @@ def main():
         seed_cfg=CONFIG.get("seed"),
         city_cfg=CONFIG.get("city"),
         province_cfg=CONFIG.get("province"),
+        country_cfg=CONFIG.get("country")
         )
 
     core.build_sim()

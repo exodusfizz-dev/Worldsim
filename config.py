@@ -1,5 +1,5 @@
 CONFIG = {
-    
+
     "seed": 
         {"seed": 42,
          "use": True}, # Random seed for later use
@@ -9,19 +9,23 @@ CONFIG = {
             {"enabled": True, 
             "report_interval": 6,
             }},
-            
+
 
     "city": 
         {"migration": 
             {"enabled": True, 
             "intergroup_rate": 0.0005, # Decimal percentage of population migrating each tick. Default = 0.0005 = 0.05%
-            }}, 
-            
+            }},
+
     "province": 
         {"migration": 
             {"enabled": False, 
-             "intercity_rate": 0.0001, # Decimal percentage of population migrating between cities each tick. Default = 0.0001 = 0.01% 
+             "intercity_rate": 0.0001, 
+            # Decimal percentage of population migrating between cities each tick. Default = 0.0001 = 0.01%
             }},
 
-
+    "country":
+        {"_":
+         {"enabled": True,
+          }},
 }
