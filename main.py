@@ -4,6 +4,7 @@ This module calls core to run the simulation, and prints outputs
 from config import CONFIG
 from model.core import Core
 from visualisation.report import report
+from visualisation.graph import graph_total_pop
 
 
 MAIN_CFG = CONFIG["main"]
@@ -29,8 +30,11 @@ def main():
         core.tick()
 
         if REPORTER_CFG.get('enabled', True) and week % REPORTER_CFG.get('report_interval', 1) == 0:
+            spr = REPORTER_CFG.get('sub_province_report', False)
 
-            report(week, core)
+            report(week, core, spr)
+
+    graph_total_pop(city_data=core.countries[0].provinces[0].cities[0].city_data)
 
 
 if __name__ == "__main__":  # Temporary main function for testing
