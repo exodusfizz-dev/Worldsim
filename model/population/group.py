@@ -62,16 +62,18 @@ class PopulationGroup:
 
     def update_sick(self):
         self.sick = min(self.size * self.base_sickness_rate * (1-self.healthcare), self.size)
-        self.sick_rate = self.sick/self.size
+        self.sick_rate = self.sick / self.size if self.size > 0 else 0
 
     def update_employment(self):
         self.employable = 0.7 - self.sick_rate
 
-        self.employment_rate = self.employed / self.size
+        self.employment_rate = self.employed / self.size if self.size > 0 else 0
 
     def compute_food_consumption(self):
         food_consumption = self.size * (3 - self.sick_rate)
         return food_consumption
     
     def starve(self, food_deficit):
+        if self.size <= 0:
+            return
         self.sick = self.sick * (food_deficit / (self.size * 3))

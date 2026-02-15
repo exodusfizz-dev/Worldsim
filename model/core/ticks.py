@@ -6,6 +6,7 @@ from model.economy import Firm
 from model.population import PopulationGroup
 from model.country import Country
 
+
 class Core:
     def __init__(self, seed_cfg, city_cfg, province_cfg, country_cfg):
 
@@ -22,50 +23,43 @@ class Core:
         for country in self.countries:
             country.tick()
 
- 
+    def _build_population_groups(self, groups):
+        return [
+            PopulationGroup(
+                size=group["size"],
+                healthcare=group["base_healthcare"],
+                healthcare_capacity=group["healthcare_capacity"],
+                rng=self.rng,
+            )
+            for group in groups
+        ]
+
+    def _build_firms(self, firms):
+        return [Firm(productivity = firm_data["productivity"],
+                production_capacity = firm_data["production_capacity"],
+                capital = firm_data["capital"],
+                ownership = firm_data["ownership"],
+                wage = firm_data["wage"],
+                good = firm_data["good"],
+                rng = self.rng) for firm_data in firms]
+
+    def _build_city(self, city_data):
+        populations = self._build_population_groups(city_data["groups"])
+        firms = self._build_firms(city_data["firms"])
+        return City(populations, city_data["name"], cfg=self.city_cfg, rng=self.rng, firms=firms)
+
+    def _build_province(self, province_data):
+        cities = [self._build_city(city_data) for city_data in province_data["cities"]]
+        return Province(
+            cities,
+            province_data["area"],
+            province_data["name"],
+            cfg=self.province_cfg,
+            rng=self.rng,
+        )
 
     def build_provinces(self, data):
-        provinces = []
-
-        for province_data in data["provinces"]:
-
-            cities = []
-            province_area = province_data["area"]
-            province_name = province_data["name"]
-
-            for city in province_data["cities"]:
-                populations = []
-                firms = []
-                city_name = city["name"]
-
-                for group in city["groups"]: # Creates list of population groups in city
-                        population_obj = PopulationGroup(
-                                                         size=group["size"], 
-                                                         healthcare=group["base_healthcare"], 
-                                                         healthcare_capacity=group["healthcare_capacity"], 
-                                                         rng=self.rng
-                                                         )
-                        populations.append(population_obj)
-
-                for firm in city["firms"]: # Creates list of firms in city
-                        firm_obj = Firm(
-                                        productivity = firm["productivity"],
-                                        production_capacity = firm["production_capacity"],
-                                        capital = firm["capital"],
-                                        ownership = firm["ownership"],
-                                        wage = firm["wage"],
-                                        good = firm["good"],
-                                        rng = self.rng
-                                         )
-                        firms.append(firm_obj)
-
-                city_obj = City(populations, city_name, cfg=self.city_cfg, rng=self.rng, firms=firms)
-                cities.append(city_obj)
-                    
-            province_obj = Province(cities, province_area, province_name, cfg=self.province_cfg, rng=self.rng)
-            provinces.append(province_obj)
-        
-        return provinces
+        return [self._build_province(province_data) for province_data in data["provinces"]]
 
     def build_sim(self):
         self.countries = []
