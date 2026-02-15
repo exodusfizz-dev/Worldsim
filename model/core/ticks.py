@@ -35,18 +35,12 @@ class Core:
         ]
 
     def _build_firms(self, firms):
-        return [Firm(productivity = firm_data["productivity"],
-                production_capacity = firm_data["production_capacity"],
-                capital = firm_data["capital"],
-                ownership = firm_data["ownership"],
-                wage = firm_data["wage"],
-                good = firm_data["good"],
-                rng = self.rng) for firm_data in firms]
+        return [Firm.from_dict(firm_data, rng=self.rng) for firm_data in firms]
 
     def _build_city(self, city_data):
         populations = self._build_population_groups(city_data["groups"])
         firms = self._build_firms(city_data["firms"])
-        return City(populations, city_data["name"], cfg=self.city_cfg, rng=self.rng, firms=firms)
+        return City.from_dict(city_data, populations, firms, rng=self.rng, cfg=self.city_cfg)
 
     def _build_province(self, province_data):
         cities = [self._build_city(city_data) for city_data in province_data["cities"]]
