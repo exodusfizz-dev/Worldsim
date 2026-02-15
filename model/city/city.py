@@ -2,7 +2,7 @@ import numpy as np
 import math
 from model.migration import Migration
 from model.city.city_data import CityData
-from model.labour import LabourMarket
+from model.economy import LabourMarket
 
 
 class City:

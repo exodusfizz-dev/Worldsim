@@ -2,7 +2,7 @@ import json
 from model.city import City
 from model.province import Province
 import numpy as np
-from model.industry import Firm
+from model.economy import Firm
 from model.population import PopulationGroup
 from model.country import Country
 
