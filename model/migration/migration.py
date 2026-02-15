@@ -17,14 +17,14 @@ class Migration:
         """
         better_targets = [t for t in potential_targets 
                           if t.migration_attractiveness > source.migration_attractiveness]
-        
+
         if not better_targets:
             return 0, None
-        
+
         target = min(better_targets, key=lambda t: t.migration_attractiveness)
         
         migrated_amount = source.size * self.migration_rate
         source.size -= migrated_amount
         target.size += migrated_amount
-        
+
         return migrated_amount, target

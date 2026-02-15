@@ -9,7 +9,7 @@ class City:
     def __init__(self, populations, name, cfg, rng, firms):
         self.rng = rng
         self.cfg = cfg
-        DEFAULT_MIGRATION_RATE = self.cfg.get('intergroup_rate', 0.0005) # Decimal percentage that population groups will migrate each tick
+        DEFAULT_MIGRATION_RATE = self.cfg['migration'].get('intergroup_rate', 0.0005) # Decimal percentage that population groups will migrate each tick
         self.migration = Migration(self.rng, DEFAULT_MIGRATION_RATE) # Init migration object for this city
 
         self.labour_market = LabourMarket(self.rng, country_policy = None) # Init labour market object for this city
@@ -23,6 +23,8 @@ class City:
         self.inv = {}
         for firm in firms:
             self.inv.setdefault(firm.good, 0) # Add each good that firms produce for this city to a dictionary
+        if not "food" in self.inv:
+            self.inv.setdefault("food", 0)
 
         self.city_data = CityData(self)
 

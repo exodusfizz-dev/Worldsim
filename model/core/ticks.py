@@ -62,8 +62,8 @@ class Core:
                 city_obj = City(populations, city_name, cfg=self.city_cfg, rng=self.rng, firms=firms)
                 cities.append(city_obj)
                     
-                province_obj = Province(cities, province_area, province_name, cfg=self.province_cfg, rng=self.rng)
-                provinces.append(province_obj)
+            province_obj = Province(cities, province_area, province_name, cfg=self.province_cfg, rng=self.rng)
+            provinces.append(province_obj)
         
         return provinces
 
