@@ -34,7 +34,7 @@ def main():
 
             report(week, core, spr)
 
-    graph_total_pop(city_data=core.countries[0].provinces[0].cities[0].city_data)
+    graph_total_pop(city=core.countries[0].provinces[0].cities[0])
 
 
 if __name__ == "__main__":  # Temporary main function for testing

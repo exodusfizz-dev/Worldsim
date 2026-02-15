@@ -1,4 +1,4 @@
-
+'''Helper functions related to randomness'''
 import math
 
 def _sample_normal(expected, rng):

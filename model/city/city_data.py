@@ -28,7 +28,10 @@ class CityData:
 
     def sum_population_data(self):
 
-        '''Returns dictionary summary of all population groups.'''
+        '''
+        Helper function for store_data
+        Returns a list dictionary summary of all population groups.
+        '''
         c = self.city
         summary = []
 
@@ -47,7 +50,10 @@ class CityData:
 
     def sum_firm_data(self):
 
-        '''Returns dictionary summary of all firms.'''
+        '''
+        Helper function for store_data
+        Returns list dictionary summary of all firms.
+        '''
 
         c = self.city
         summary = []
@@ -63,7 +69,10 @@ class CityData:
         return summary
 
     def sum_city_data(self):
-
+        '''
+        Helper function for store_data.
+        Returns a dictionary.
+        '''
         c = self.city
 
         summary = {

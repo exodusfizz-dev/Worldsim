@@ -13,7 +13,7 @@ CONFIG = {
 
 
     "city": 
-        {"migration": 
+        {"migration":
             {"enabled": True, 
             "intergroup_rate": 0.0005, # Decimal percentage of population migrating each tick. Default = 0.0005 = 0.05%
             }},
