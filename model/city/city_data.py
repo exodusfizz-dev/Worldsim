@@ -10,7 +10,7 @@ class CityData:
         self.city = city
         self.data = []
 
-    def update_pop_data(self):
+    def update_city_data(self):
         '''
         Updates data that is dependent on variables the city object handles
         '''
