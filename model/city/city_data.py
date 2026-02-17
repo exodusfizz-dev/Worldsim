@@ -2,13 +2,51 @@
 City data module contains class CityData, which supplies various data-related functions
 '''
 
+from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, TypedDict
+
+if TYPE_CHECKING:
+    from model.city.city import City
+
+
+class PopulationSummary(TypedDict):
+    group: int
+    size: int
+    healthcare: float
+    last_births: int
+    last_deaths: int
+    employment_rate: float
+    sick_rate: float
+
+
+class FirmSummary(TypedDict):
+    ownership: str
+    good: str
+    employed: int
+    total_productivity: float
+
+
+class CitySummary(TypedDict):
+    population: int
+    births: int
+    deaths: int
+    employable: float
+    productivity: float
+
+
+class CitySnapshot(TypedDict):
+    city_data: CitySummary
+    population_data: list[PopulationSummary]
+    firm_data: list[FirmSummary]
+
+
+@dataclass
 class CityData:
     '''
     City data handles data for cities by updating, creating summaries and storing it
     '''
-    def __init__(self, city):
-        self.city = city
-        self.data = []
+    city: "City"
+    data: list[CitySnapshot] = field(default_factory=list)
 
     def update_city_data(self):
         '''
@@ -24,16 +62,17 @@ class CityData:
 
         c.productivity = sum(firm.total_productivity for firm in c.firms)
 
-        self.store_data()
+        self.data.append(self.store_data())
 
-    def sum_population_data(self):
+    def sum_population_data(self) -> list[PopulationSummary]:
 
         '''
         Helper function for store_data
         Returns a list dictionary summary of all population groups.
         '''
+
         c = self.city
-        summary = []
+        summary: list[PopulationSummary] = []
 
         for i, group in enumerate(c.populations, 1):
             summary.append ({
@@ -48,7 +87,7 @@ class CityData:
 
         return summary
 
-    def sum_firm_data(self):
+    def sum_firm_data(self) -> list[FirmSummary]:
 
         '''
         Helper function for store_data
@@ -56,7 +95,7 @@ class CityData:
         '''
 
         c = self.city
-        summary = []
+        summary: list[FirmSummary] = []
 
         for firm in c.firms:
             summary.append ({
@@ -68,7 +107,8 @@ class CityData:
 
         return summary
 
-    def sum_city_data(self):
+    def sum_city_data(self) -> CitySummary:
+
         '''
         Helper function for store_data.
         Returns a dictionary.
@@ -85,8 +125,8 @@ class CityData:
 
         return summary
 
-    def store_data(self):
-        self.data.append({
+    def store_data(self) -> CitySnapshot:
+        full_summary = ({
             'city_data':
                 self.sum_city_data(),
 
@@ -98,3 +138,5 @@ class CityData:
 
         }
         )
+
+        return full_summary
