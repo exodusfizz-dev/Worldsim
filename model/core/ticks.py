@@ -44,13 +44,7 @@ class Core:
 
     def _build_province(self, province_data):
         cities = [self._build_city(city_data) for city_data in province_data["cities"]]
-        return Province(
-            cities,
-            province_data["area"],
-            province_data["name"],
-            cfg=self.province_cfg,
-            rng=self.rng,
-        )
+        return Province.from_dict(province_data, cities, cfg=self.province_cfg, rng=self.rng)
 
     def build_provinces(self, data):
         return [self._build_province(province_data) for province_data in data["provinces"]]

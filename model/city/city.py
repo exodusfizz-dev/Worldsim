@@ -26,13 +26,13 @@ class City:
         self.p = params
         self.rng = rng
         self.cfg = cfg
-        
+
         self.state = CityState()
 
         DEFAULT_MIGRATION_RATE = self.cfg['migration'].get('intergroup_rate', 0.0005)
-        self.migration = Migration(self.rng, DEFAULT_MIGRATION_RATE)
+        self.migration = Migration(rng=self.rng, migration_rate=DEFAULT_MIGRATION_RATE, obj=self)
 
-        self.labour_market = LabourMarket(self.rng, country_policy = None) # Init labour market object for this city
+        self.labour_market = LabourMarket(self.rng, country_policy = None)
 
         self.state.migration_attractiveness = mean(group.migration_attractiveness for group in self.p.populations)
 
@@ -115,20 +115,12 @@ class City:
         self.consume_food()
         self.run_migrations() # Runs migrations between population groups
         self.city_data.update_city_data()
-        
+
 
 
     def run_migrations(self):
         if self.cfg.get('migration', {}).get('enabled', True):
-
-            self.state.migrations = []
-
-            for i, group in enumerate(self.p.populations, 1):
-                migrated_amount, target = self.migration.migrate(group, self.p.populations)
-
-                if migrated_amount > 0:
-                    target_index = self.p.populations.index(target) + 1
-                    self.state.migrations.append((i, migrated_amount, target_index))
+            self.state.migrations.append(self.migration.intergroup_migration())
 
     def consume_food(self):
         '''
@@ -143,5 +135,6 @@ class City:
             self.state.last_food_deficit = food_needed - self.state.inv["food"] # To be used for imports later
             self.state.migration_attractiveness = 0 # No one wants to migrate to a starving city. They aren't allowed in anyway.
             self.state.inv["food"] = 0
+
             for g in self.p.populations:
                 g.starve(food_deficit = (self.state.last_food_deficit // len(self.p.populations)))
