@@ -24,7 +24,7 @@ CONFIG = {
 
     "province":
         {"migration":
-            {"enabled": False,
+            {"enabled": True,
              "intercity_rate": 0.0001, 
             # Default = 0.0001 = 0.01%
             }
