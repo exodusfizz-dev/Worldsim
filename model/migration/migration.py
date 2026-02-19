@@ -7,11 +7,13 @@ owner only enables the migration modes it needs.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Protocol, Sequence
+from typing import TYPE_CHECKING, Callable, Protocol, Sequence, TypeVar
 
 if TYPE_CHECKING:
     from model.city.city import City
     from model.population.group import PopulationGroup
+
+T = TypeVar("T")
 
 
 class DistanceProvider(Protocol):
@@ -153,27 +155,47 @@ class Migration:
                 return idx
         return len(weights) - 1
 
-    def _candidate_targets(
+    def _build_weighted_candidates(
+        self,
+        source_attractiveness: float,
+        source_key: str,
+        candidates: Sequence[T],
+        attractiveness_of: Callable[[T], float],
+        key_of: Callable[[T], str],
+        include_candidate: Callable[[int, T], bool] | None = None,
+    ) -> list[tuple[int, T, float]]:
+
+        """Build weighted candidates from attractiveness gap and distance weight."""
+        weighted_candidates: list[tuple[int, T, float]] = []
+        for idx, candidate in enumerate(candidates):
+            if include_candidate is not None and not include_candidate(idx, candidate):
+                continue
+            gap = attractiveness_of(candidate) - source_attractiveness
+            if gap <= 0:
+                continue
+            distance_weight = self._distance_weight(source_key, key_of(candidate))
+            weight = gap * distance_weight
+            if weight > 0:
+                weighted_candidates.append((idx, candidate, weight))
+        return weighted_candidates
+
+    def _candidate_groups(
         self,
         source_attractiveness: float,
         source_city_key: str,
-        candidates: Sequence[PopulationGroup],
-        candidate_city_key: str,
-        source_index: int | None = None,
+        groups: Sequence[PopulationGroup],
+        source_index: int,
     ) -> list[tuple[int, PopulationGroup, float]]:
-        """Return eligible targets with weights for weighted random choice."""
-        targets: list[tuple[int, PopulationGroup, float]] = []
-        for idx, target in enumerate(candidates):
-            if source_index is not None and idx == source_index:
-                continue
-            gap = target.migration_attractiveness - source_attractiveness
-            if gap <= 0:
-                continue
-            distance_weight = self._distance_weight(source_city_key, candidate_city_key)
-            weight = gap * distance_weight
-            if weight > 0:
-                targets.append((idx, target, weight))
-        return targets
+
+        """Return eligible target groups for intracity migration."""
+        return self._build_weighted_candidates(
+            source_attractiveness=source_attractiveness,
+            source_key=source_city_key,
+            candidates=groups,
+            attractiveness_of=lambda group: group.migration_attractiveness,
+            key_of=lambda _group: source_city_key,
+            include_candidate=lambda idx, _group: idx != source_index,
+        )
 
     def _fallback_split(
         self,
@@ -210,21 +232,21 @@ class Migration:
 
     def choose_target_city(self, source_city: City, candidates: Sequence[City]) -> City | None:
         """Choose a migration target city using weighted random selection."""
-        weighted: list[tuple[City, float]] = []
-        for city in candidates:
-            gap = city.migration_attractiveness - source_city.migration_attractiveness
-            if gap <= 0:
-                continue
-            weight = gap * self._distance_weight(source_city.name, city.name)
-            if weight > 0:
-                weighted.append((city, weight))
+        weighted = self._build_weighted_candidates(
+            source_attractiveness=source_city.migration_attractiveness,
+            source_key=source_city.name,
+            candidates=candidates,
+            attractiveness_of=lambda city: city.migration_attractiveness,
+            key_of=lambda city: city.name,
+        )
         if not weighted:
             return None
 
-        index = self._weighted_choice_index([weight for _, weight in weighted])
+        index = self._weighted_choice_index([weight for _, _, weight in weighted])
         if index is None:
             return None
-        return weighted[index][0]
+        _, chosen_city, _ = weighted[index]
+        return chosen_city
 
     def migrate_within_city(self, city: City) -> list[GroupMigrationEvent]:
         """Move integer migrants between groups inside one city."""
@@ -233,12 +255,11 @@ class Migration:
             return events
 
         for source_index, source_group in enumerate(city.populations):
-            targets = self._candidate_targets(
+            targets = self._candidate_groups(
                 source_attractiveness=source_group.migration_attractiveness,
                 source_city_key=city.name,
-                candidates=city.populations,
-                candidate_city_key=city.name,
                 source_index=source_index,
+                groups=city.populations,
             )
             if not targets:
                 continue
