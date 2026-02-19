@@ -1,11 +1,12 @@
-'''
-City.py handles city objects, owned by provinces.
-'''
+"""City domain model and per-tick simulation updates."""
+
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from statistics import mean
-from model.migration import Migration
 from model.city.city_data import CityData
 from model.economy import LabourMarket
+from model.migration import GroupMigrationEvent, Migration
+
 
 @dataclass
 class CityParams:
@@ -15,15 +16,18 @@ class CityParams:
     populations: list
     firms: list
 
+
 @dataclass
 class CityState:
     """Mutable city state updated during each simulation tick."""
 
     employed: int = 0
-    migrations: list = field(default_factory=list)
-    last_food_deficit: int = None
-    migration_attractiveness: float = 1
-    inv: dict = field(default_factory=dict)
+    migrations: list[GroupMigrationEvent] = field(default_factory=list)
+    last_food_deficit: float | None = None
+    migration_attractiveness: float = 0.0
+    inv: dict[str, float] = field(default_factory=dict)
+    total_population: float = 0.0
+
 
 class City:
     """City object owned by provinces."""
@@ -35,18 +39,20 @@ class City:
 
         self.state = CityState()
 
-        DEFAULT_MIGRATION_RATE = self.cfg['migration'].get('intergroup_rate', 0.0005)
-        self.migration = Migration(rng=self.rng, migration_rate=DEFAULT_MIGRATION_RATE, obj=self)
+        intergroup_rate = self.cfg.get("migration", {}).get("intergroup_rate", 0.0005)
+        self.migration = Migration.for_intergroup(
+            rng=self.rng,
+            intergroup_rate=intergroup_rate,
+        )
 
-        self.labour_market = LabourMarket(self.rng, country_policy = None)
-
-        self.state.migration_attractiveness = mean(group.migration_attractiveness for group in self.p.populations)
+        self.labour_market = LabourMarket(self.rng, country_policy=None)
 
         for firm in self.p.firms:
             self.state.inv.setdefault(firm.good, 0.0)
         if "food" not in self.state.inv:
             self.state.inv["food"] = 0.0
 
+        self.refresh_totals()
         self.city_data = CityData(self)
 
     @classmethod
@@ -85,6 +91,19 @@ class City:
     def migration_attractiveness(self, value: float) -> None:
         self.state.migration_attractiveness = value
 
+    @property
+    def total_population(self) -> float:
+        """Canonical city population used by migration and reporting."""
+        return self.state.total_population
+
+    @total_population.setter
+    def total_population(self, value: float) -> None:
+        self.state.total_population = value
+
+    @property
+    def group_count(self) -> int:
+        """Number of population groups currently in the city."""
+        return len(self.p.populations)
 
     @property
     def name(self) -> str:
@@ -98,13 +117,21 @@ class City:
     def firms(self) -> list:
         return self.p.firms
 
-
-    def tick(self):
-        for group in self.p.populations: # City controls tick updates of all owned population groups
-            group.tick()
-        self.state.migration_attractiveness = mean(
-            group.migration_attractiveness for group in self.p.populations
+    def refresh_totals(self) -> None:
+        """Recompute derived totals needed by migration and reporting."""
+        self.total_population = sum(group.size for group in self.p.populations)
+        if self.p.populations:
+            self.state.migration_attractiveness = (
+                sum(group.migration_attractiveness for group in self.p.populations)
+                / len(self.p.populations)
             )
+        else:
+            self.state.migration_attractiveness = 0.0
+
+    def tick(self) -> None:
+        for group in self.p.populations:
+            group.tick()
+        self.refresh_totals()
 
         self.state.employed = self.labour_market.clear_market(
             populations=self.p.populations,
@@ -120,14 +147,15 @@ class City:
                 self.state.inv[firm.good] += firm.transfer_to_city()
 
         self.consume_food()
-        self.run_migrations() # Runs migrations between population groups
+        self.run_migrations()
+        self.refresh_totals()
         self.city_data.update_city_data()
 
-
-
-    def run_migrations(self):
-        if self.cfg.get('migration', {}).get('enabled', True):
-            self.state.migrations.append(self.migration.intergroup_migration())
+    def run_migrations(self) -> None:
+        """Run migration between groups inside this city."""
+        self.state.migrations = []
+        if self.cfg.get("migration", {}).get("enabled", True):
+            self.state.migrations.extend(self.migration.migrate_within_city(self))
 
     def consume_food(self) -> None:
         """Consume food and apply starvation effects when supply is insufficient."""
