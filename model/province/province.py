@@ -1,5 +1,10 @@
+"""Province model and intercity migration orchestration."""
+
+from __future__ import annotations
+
 from dataclasses import dataclass, field
-from model.migration import Migration
+from model.migration import GroupMigrationEvent, Migration
+
 
 @dataclass
 class ProvinceParams:
@@ -12,7 +17,10 @@ class ProvinceParams:
 
 @dataclass
 class ProvinceState:
-    migrations: list = field(default_factory=list)
+    """Mutable province-level runtime state."""
+
+    migrations: list[GroupMigrationEvent] = field(default_factory=list)
+
 
 class Province:
     """Province object owning a list of cities."""
@@ -23,9 +31,11 @@ class Province:
         self.p = params
         self.state = ProvinceState()
 
-        DEFAULT_MIGRATION_RATE = 0.002
-        self.migration = Migration(rng=self.rng, migration_rate=DEFAULT_MIGRATION_RATE, obj=self)
-
+        intercity_rate = self.cfg.get("migration", {}).get("intercity_rate", 0.0001)
+        self.migration = Migration.for_intercity(
+            rng=self.rng,
+            intercity_rate=intercity_rate,
+        )
 
     @classmethod
     def from_dict(cls, province_data: dict, cities, cfg, rng) -> "Province":
@@ -52,7 +62,8 @@ class Province:
         return self.p.area
 
     @property
-    def migrations(self):
+    def migrations(self) -> list[GroupMigrationEvent]:
+        """Read-only log of intercity migration events for the latest tick."""
         return self.state.migrations
 
     def tick(self) -> None:
@@ -60,13 +71,34 @@ class Province:
             city.tick()
         self.run_migrations()
 
+    def run_migrations(self) -> None:
+        """Run basic intercity migration from less to more attractive cities."""
+        self.state.migrations = []
+        if not self.cfg.get("migration", {}).get("enabled", True):
+            return
 
-    def run_migrations(self):
+        touched_cities: set = set()
 
-        '''
-        Handles migration between cities in the province.
-        '''
+        for source_city in self.p.cities:
+            candidates = [
+                city
+                for city in self.p.cities
+                if city is not source_city
+                and city.migration_attractiveness > source_city.migration_attractiveness
+            ]
+            if not candidates:
+                continue
 
-        if self.cfg.get('migration', {}).get('enabled', True):
+            target_city = self.migration.choose_target_city(source_city, candidates)
+            if target_city is None:
+                continue
+            events = self.migration.migrate_between_cities(source_city, target_city)
+            if not events:
+                continue
 
-            pass
+            self.state.migrations.extend(events)
+            touched_cities.add(source_city)
+            touched_cities.add(target_city)
+
+        for city in touched_cities:
+            city.refresh_totals()

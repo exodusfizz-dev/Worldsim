@@ -61,5 +61,7 @@ def report_provinces(country, week):
 
             for migration in city.migrations: # Prints migration data
 
-                from_group, amount, to_group = migration
+                from_group = migration.source_group_index + 1
+                to_group = migration.target_group_index + 1
+                amount = migration.amount
                 print(f"{from_group} -> {to_group}, amount: {amount:.3f}")
