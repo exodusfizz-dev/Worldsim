@@ -48,17 +48,19 @@ class CityData:
     city: "City"
     data: list[CitySnapshot] = field(default_factory=list)
 
-    def update_city_data(self):
+    def update_city_data(self) -> None:
         '''
         Updates data that is dependent on variables the city object handles
         '''
         c = self.city
-        c.total_population = sum(group.size for group in c.populations)
         c.birth_total = sum(group.births for group in c.populations)
         c.death_total = sum(group.deaths for group in c.populations)
 
         # People of fit age and health to work as decimal.
-        c.employable = sum(group.employable for group in c.populations) / len(c.populations)
+        if c.populations:
+            c.employable = sum(group.employable for group in c.populations) / len(c.populations)
+        else:
+            c.employable = 0.0
 
         c.productivity = sum(firm.total_productivity for firm in c.firms)
 
