@@ -9,12 +9,16 @@ from model.economy import LabourMarket
 
 @dataclass
 class CityParams:
+    """Immutable construction parameters for a city."""
+
     name: str
     populations: list
     firms: list
 
 @dataclass
 class CityState:
+    """Mutable city state updated during each simulation tick."""
+
     employed: int = 0
     migrations: list = field(default_factory=list)
     last_food_deficit: int = None
@@ -22,7 +26,9 @@ class CityState:
     inv: dict = field(default_factory=dict)
 
 class City:
-    def __init__(self, cfg, rng, params: CityParams):
+    """City object owned by provinces."""
+
+    def __init__(self, cfg: dict, rng, params: CityParams) -> None:
         self.p = params
         self.rng = rng
         self.cfg = cfg
@@ -37,58 +43,59 @@ class City:
         self.state.migration_attractiveness = mean(group.migration_attractiveness for group in self.p.populations)
 
         for firm in self.p.firms:
-            self.state.inv.setdefault(firm.good, 0)
+            self.state.inv.setdefault(firm.good, 0.0)
         if "food" not in self.state.inv:
-            self.state.inv.setdefault("food", 0)
+            self.state.inv["food"] = 0.0
 
         self.city_data = CityData(self)
 
     @classmethod
-    def from_dict(cls, city_data: dict, populations, firms, rng, cfg):
+    def from_dict(cls, city_data: dict, populations, firms, rng, cfg) -> "City":
         return cls(
             params=CityParams(
                 name=city_data["name"],
                 populations=populations,
-                firms=firms
+                firms=firms,
             ),
             rng=rng,
             cfg=cfg,
         )
 
     @property
-    def employed(self):
+    def employed(self) -> int:
         return self.state.employed
 
     @property
-    def migrations(self):
+    def migrations(self) -> list[GroupMigrationEvent]:
         return self.state.migrations
 
     @property
-    def last_food_deficit(self):
+    def last_food_deficit(self) -> float | None:
         return self.state.last_food_deficit
 
-    @property 
-    def inv(self):
+    @property
+    def inv(self) -> dict[str, float]:
         return self.state.inv
 
     @property
-    def migration_attractiveness(self):
+    def migration_attractiveness(self) -> float:
         return self.state.migration_attractiveness
+
     @migration_attractiveness.setter
-    def migration_attractiveness(self, value):
+    def migration_attractiveness(self, value: float) -> None:
         self.state.migration_attractiveness = value
 
 
     @property
-    def name(self):
+    def name(self) -> str:
         return self.p.name
 
     @property
-    def populations(self):
+    def populations(self) -> list:
         return self.p.populations
 
     @property
-    def firms(self):
+    def firms(self) -> list:
         return self.p.firms
 
 
@@ -100,16 +107,16 @@ class City:
             )
 
         self.state.employed = self.labour_market.clear_market(
-            populations = self.p.populations,
-            firms = self.p.firms
+            populations=self.p.populations,
+            firms=self.p.firms,
         )
 
         for firm in self.p.firms:
-            firm.tick() # Tick updates productivity after employement and makes the firm produce goods.
-            if firm.good not in self.state.inv: # Make sure the good is in the city before transferring it
-                self.state.inv.setdefault(firm.good, 0)
+            firm.tick()
+            if firm.good not in self.state.inv:
+                self.state.inv.setdefault(firm.good, 0.0)
 
-            if firm.ownership == "state": # SOEs transfer their inventory to the city.
+            if firm.ownership == "state":
                 self.state.inv[firm.good] += firm.transfer_to_city()
 
         self.consume_food()
@@ -122,19 +129,20 @@ class City:
         if self.cfg.get('migration', {}).get('enabled', True):
             self.state.migrations.append(self.migration.intergroup_migration())
 
-    def consume_food(self):
-        '''
-        Consumes food based on population. Calculates deficit, if any.
-        '''
-
+    def consume_food(self) -> None:
+        """Consume food and apply starvation effects when supply is insufficient."""
         food_needed = sum(g.compute_food_consumption() for g in self.p.populations)
         if food_needed < self.state.inv["food"]:
             self.state.inv["food"] -= food_needed
             self.state.last_food_deficit = None
-        else:
-            self.state.last_food_deficit = food_needed - self.state.inv["food"] # To be used for imports later
-            self.state.migration_attractiveness = 0 # No one wants to migrate to a starving city. They aren't allowed in anyway.
-            self.state.inv["food"] = 0
+            return
 
-            for g in self.p.populations:
-                g.starve(food_deficit = (self.state.last_food_deficit // len(self.p.populations)))
+        self.state.last_food_deficit = food_needed - self.state.inv["food"]
+        self.state.migration_attractiveness = 0.0
+        self.state.inv["food"] = 0.0
+
+        if not self.p.populations:
+            return
+        per_group_deficit = self.state.last_food_deficit // len(self.p.populations)
+        for group in self.p.populations:
+            group.starve(food_deficit=per_group_deficit)
