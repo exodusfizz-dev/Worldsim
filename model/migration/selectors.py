@@ -2,7 +2,7 @@
 
 from typing import Callable, Sequence
 
-from model.migration.protocols import DistanceProvider
+from model.protocols import DistanceProvider
 from model.migration.types import T, WeightedTarget
 
 
