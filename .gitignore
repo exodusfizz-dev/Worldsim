@@ -35,3 +35,4 @@ model/__pycache__/protocols.cpython-311.pyc
 model/__pycache__/__init__.cpython-311.pyc
 model/economy/trade/__pycache__/__init__.cpython-311.pyc
 model/economy/trade/__pycache__/market.cpython-311.pyc
+model/population/__pycache__/group_properties.cpython-311.pyc
