@@ -6,6 +6,7 @@ from dataclasses import dataclass, field
 from model.city.city_data import CityData
 from model.economy import LabourMarket
 from model.migration import GroupMigrationEvent, Migration
+from model.economy.trade import Market
 
 
 @dataclass
@@ -46,6 +47,10 @@ class City:
         )
 
         self.labour_market = LabourMarket(self.rng, country_policy=None)
+        self.market = Market.build_from(
+            rng=self.rng,
+            city_key=self.name
+        )
 
         for firm in self.p.firms:
             self.state.inv.setdefault(firm.good, 0.0)

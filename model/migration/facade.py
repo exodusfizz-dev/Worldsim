@@ -1,11 +1,11 @@
-"""Public migration facade preserving the existing API."""
+"""Public migration facade preserving the API."""
 
 from typing import TYPE_CHECKING, Sequence
 
 from model.migration.allocation import MigrationAllocator
 from model.migration.engines import IntercityMigrationEngine, IntergroupMigrationEngine
 from model.migration.options import MigrationOptions
-from model.migration.protocols import DistanceProvider, NeutralDistanceProvider
+from model.protocols import DistanceProvider, NeutralDistanceProvider
 from model.migration.selectors import WeightedTargetSelector
 from model.migration.types import GroupMigrationEvent
 
