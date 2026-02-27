@@ -142,14 +142,15 @@ class City:
             populations=self.p.populations,
             firms=self.p.firms,
         )
-
         for firm in self.p.firms:
-            firm.tick()
             if firm.good not in self.state.inv:
                 self.state.inv.setdefault(firm.good, 0.0)
+            firm.tick()
 
             if firm.ownership == "state":
-                self.state.inv[firm.good] += firm.transfer_to_city()
+                transfer = firm.transfer_to_city()
+                self.state.inv[firm.good] += transfer
+                firm.market_capital += transfer * (1 / firm.p.productivity) * 30
 
         self.consume_food()
         self.run_migrations()
@@ -165,7 +166,7 @@ class City:
     def consume_food(self) -> None:
         """Consume food and apply starvation effects when supply is insufficient."""
         food_needed = sum(g.compute_food_consumption() for g in self.p.populations)
-        if food_needed < self.state.inv["food"]:
+        if food_needed <= self.state.inv["food"]:
             self.state.inv["food"] -= food_needed
             self.state.last_food_deficit = None
             return

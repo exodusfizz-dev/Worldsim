@@ -10,13 +10,14 @@ class FirmParams:
     # transitional: optional in input_data.json
     capital: float | None = None
     wage: float | None = None
+    country_policy: dict | None = None
 
 @dataclass
 class FirmState:
     employed: int = 0
     total_productivity: float = 0.0
     inventory: float = 0.0
-    market_capital: float | None = None
+    market_capital: float = 0.0
 
 class Firm:
     def __init__(self, params: FirmParams, rng):
@@ -25,8 +26,10 @@ class Firm:
 
         self.rng = rng
 
+        self.state.market_capital = self.p.capital if self.p.capital is not None else 0.0
+
     @classmethod
-    def from_dict(cls, firm_data: dict, rng):
+    def from_dict(cls, firm_data: dict, rng, country_policy: None = None):
         return cls(
             params=FirmParams(
                 productivity=firm_data["productivity"],
@@ -35,6 +38,7 @@ class Firm:
                 good=firm_data["good"],
                 capital=firm_data.get("capital"),
                 wage=firm_data.get("wage"),
+                country_policy=country_policy
             ),
             rng=rng,
         )
@@ -60,6 +64,13 @@ class Firm:
     @inventory.setter
     def inventory(self, value):
         self.state.inventory = value
+
+    @property
+    def market_capital(self):
+        return self.state.market_capital
+    @market_capital.setter
+    def market_capital(self, value):
+        self.state.market_capital = value
 
     @property
     def good(self):
@@ -92,6 +103,8 @@ class Firm:
 
     def produce(self):
         self.inventory += _sample_normal(expected=self.update_total_productivity(), rng=self.rng)
+
+        self.market_capital -= self.employed * self.p.wage
 
 
     def tick(self):

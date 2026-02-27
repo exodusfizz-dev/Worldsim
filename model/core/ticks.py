@@ -27,12 +27,8 @@ class Core:
 
     def _build_population_groups(self, groups):
         return [
-            PopulationGroup(
-                size=group["size"],
-                healthcare=group["base_healthcare"],
-                healthcare_capacity=group["healthcare_capacity"],
-                rng=self.rng,
-            )
+            PopulationGroup.from_dict(group_data=group,
+                rng=self.rng,)
             for group in groups
         ]
 
@@ -40,9 +36,16 @@ class Core:
         return [Firm.from_dict(firm_data, rng=self.rng) for firm_data in firms]
 
     def _build_city(self, city_data):
+
         populations = self._build_population_groups(city_data["groups"])
+
         firms = self._build_firms(city_data["firms"])
-        return City.from_dict(city_data, populations, firms, rng=self.rng, cfg=self.city_cfg)
+
+        return City.from_dict(city_data,
+                              populations,
+                              firms,
+                              rng=self.rng,
+                              cfg=self.city_cfg)
 
     def _build_province(self, province_data):
         cities = [self._build_city(city_data) for city_data in province_data["cities"]]
