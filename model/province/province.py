@@ -1,7 +1,5 @@
 """Province model and intercity migration orchestration."""
 
-from __future__ import annotations
-
 from dataclasses import dataclass, field
 from model.migration import GroupMigrationEvent, Migration
 
@@ -39,6 +37,7 @@ class Province:
 
     @classmethod
     def from_dict(cls, province_data: dict, cities, cfg, rng) -> "Province":
+        '''Build a province from input data and constructed cities.'''
         return cls(
             params=ProvinceParams(
                 name=province_data["name"],
@@ -67,6 +66,7 @@ class Province:
         return self.state.migrations
 
     def tick(self) -> None:
+        '''Runs one time step for the province, and all cities within it.'''
         for city in self.p.cities:
             city.tick()
         self.run_migrations()
