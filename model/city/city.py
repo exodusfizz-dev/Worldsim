@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from model.city.city_data import CityData
 from model.economy import LabourMarket
+from model.economy.labour.labour_market import LabourClearResult
 from model.migration import GroupMigrationEvent, Migration
 from model.economy.trade import Market
 
@@ -28,6 +29,8 @@ class CityState:
     migration_attractiveness: float = 0.0
     inv: dict[str, float] = field(default_factory=dict)
     total_population: float = 0.0
+    treasury: float = 0.0
+    labour_result: LabourClearResult | None = None
 
 
 class City:
@@ -49,7 +52,7 @@ class City:
         self.labour_market = LabourMarket(self.rng, country_policy=None)
         self.market = Market.build_from(
             rng=self.rng,
-            city_key=self.name
+            city_id=self.name
         )
 
         for firm in self.p.firms:
@@ -138,10 +141,13 @@ class City:
             group.tick()
         self.refresh_totals()
 
-        self.state.employed = self.labour_market.clear_market(
+        self.state.labour_result = self.labour_market.clear_market(
             populations=self.p.populations,
             firms=self.p.firms,
         )
+        self.state.employed = self.state.labour_result.total_employed
+        self.settle_labour_tax()
+
         for firm in self.p.firms:
             if firm.good not in self.state.inv:
                 self.state.inv.setdefault(firm.good, 0.0)
@@ -163,20 +169,55 @@ class City:
         if self.cfg.get("migration", {}).get("enabled", True):
             self.state.migrations.extend(self.migration.migrate_within_city(self))
 
+    def settle_labour_tax(self) -> None:
+        """Collect labour income tax from groups."""
+        if self.state.labour_result is None:
+            return
+
+        tax_cfg = self.cfg.get("tax", {})
+        labour_tax_rate = max(min(tax_cfg.get("labour_tax_rate", 0.0), 1.0), 0.0)
+        if labour_tax_rate <= 0:
+            return
+
+        for group, income in zip(self.p.populations, self.state.labour_result.group_income):
+            tax = max(income, 0.0) * labour_tax_rate
+            paid = min(group.money, tax)
+            group.money -= paid
+            self.state.treasury += paid
+
     def consume_food(self) -> None:
-        """Consume food and apply starvation effects when supply is insufficient."""
-        food_needed = sum(g.compute_food_consumption() for g in self.p.populations)
-        if food_needed <= self.state.inv["food"]:
-            self.state.inv["food"] -= food_needed
+        """Groups buy and consume food from city inventory."""
+        if not self.p.populations:
             self.state.last_food_deficit = None
             return
 
-        self.state.last_food_deficit = food_needed - self.state.inv["food"]
-        self.state.migration_attractiveness = 0.0
-        self.state.inv["food"] = 0.0
+        market_cfg = self.cfg.get("market", {})
+        food_price = max(float(market_cfg.get("food_price", 1.0)), 0.0)
+        total_deficit = 0.0
 
-        if not self.p.populations:
-            return
-        per_group_deficit = self.state.last_food_deficit // len(self.p.populations)
         for group in self.p.populations:
-            group.starve(food_deficit=per_group_deficit)
+            needed = group.compute_food_consumption()
+            available = self.state.inv["food"]
+            if available <= 0:
+                purchased = 0.0
+            elif food_price <= 0:
+                purchased = min(needed, available)
+            else:
+                affordable = group.money / food_price
+                purchased = min(needed, available, affordable)
+
+            if food_price > 0 and purchased > 0:
+                spent = purchased * food_price
+                group.money = max(group.money - spent, 0.0)
+            self.state.inv["food"] -= purchased
+
+            deficit = max(needed - purchased, 0.0)
+            total_deficit += deficit
+            if deficit > 0:
+                group.starve(food_deficit=deficit)
+
+        if total_deficit > 0:
+            self.state.last_food_deficit = total_deficit
+            self.state.migration_attractiveness = 0.0
+        else:
+            self.state.last_food_deficit = None

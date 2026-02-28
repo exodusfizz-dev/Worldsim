@@ -24,6 +24,7 @@ class Firm(FirmProperties):
                 good=firm_data["good"],
                 capital=firm_data.get("capital"),
                 wage=firm_data.get("wage"),
+                required_skill=firm_data.get("required_skill"),
                 country_policy=country_policy
             ),
             rng=rng,
@@ -36,9 +37,16 @@ class Firm(FirmProperties):
         cap = market_capital if market_capital is not None else self.p.capital
         wage = market_wage if market_wage is not None else self.p.wage
 
-        cap_limit = float("inf") if cap is None else cap / wage
+        if self.p.productivity <= 0:
+            return 0
+
+        if wage is None or wage <= 0:
+            cap_limit = float("inf")
+        else:
+            cap_limit = float("inf") if cap is None else cap / wage
+
         prod_limit = self.p.production_capacity / self.p.productivity
-        return min(prod_limit, cap_limit)
+        return max(min(prod_limit, cap_limit), 0)
 
 
     def update_total_productivity(self):

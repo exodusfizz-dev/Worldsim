@@ -1,17 +1,17 @@
-'''Basic first version of market. Owned by a city. Can request goods from other cities.'''
-
-from typing import TYPE_CHECKING, Sequence, Callable
+"""Basic first version of market. Owned by a city."""
 
 from dataclasses import dataclass
 from model.protocols import DistanceProvider, NeutralDistanceProvider
 
-if TYPE_CHECKING:
-    pass
-
 
 @dataclass
 class MarketParams:
-    city_key: str
+    city_id: str
+
+    @property
+    def city_key(self) -> str:
+        """Compatibility alias while callers migrate from city_key."""
+        return self.city_id
 
 @dataclass
 class MarketState:
@@ -27,12 +27,16 @@ class Market:
     @classmethod
     def build_from(cls,
         rng,
-        city_key: str,
+        city_id: str | None = None,
+        city_key: str | None = None,
         distance_provider: DistanceProvider | None = None,
         ) -> "Market":
+        resolved_city_id = city_id if city_id is not None else city_key
+        if resolved_city_id is None:
+            raise ValueError("Market.build_from requires city_id (or legacy city_key).")
         return cls(
             params=MarketParams(
-                city_key=city_key,
+                city_id=resolved_city_id,
             ),
             distance_provider=distance_provider,
             rng=rng,
