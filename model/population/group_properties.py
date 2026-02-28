@@ -23,7 +23,7 @@ class PopulationGroupState:
     migration_attractiveness: float = 0.0
     money: float = 0.0
 
-
+@dataclass
 class PopulationGroupProperties:
     '''Property accessors for population groups.'''
 
