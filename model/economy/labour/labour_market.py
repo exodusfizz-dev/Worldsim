@@ -44,19 +44,19 @@ class LabourMarket:
         if total_supply == 0 or total_demand == 0:
             return 0
 
-        total_employed = min(total_supply, total_demand)
-        hire_rate = total_employed / total_supply
+        total_to_be_employed = min(total_supply, total_demand)
+        hire_rate = total_to_be_employed / total_supply
 
 
         for g, supply in zip(populations, supply_g):
             employed_count = int(hire_rate * supply)
             g.employed = employed_count
 
-        demand_fill_rate = total_employed / total_demand
+        demand_fill_rate = total_to_be_employed / total_demand
 
         for f, demand in zip(firms, demand_f):
             workers_employed = int(demand * demand_fill_rate)
             f.employed = workers_employed
-            # f.capital -= workers_employed * f.wage
+            f.market_capital -= workers_employed * f.wage
 
-        return total_employed
+        return total_to_be_employed
