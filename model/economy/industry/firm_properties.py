@@ -11,6 +11,7 @@ class FirmParams:
     # transitional: optional in input_data.json
     capital: float | None = None
     wage: float | None = None
+    required_skill: str | None = None
     country_policy: dict | None = None
 
 @dataclass

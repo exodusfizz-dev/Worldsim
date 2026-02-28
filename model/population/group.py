@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 
 class PopulationGroup(PopulationGroupProperties):
+    '''Population group representing a demographic segment of a city's population.'''
     def __init__(self, params, rng):
         self.rng = rng
         self.p = params
@@ -34,7 +35,8 @@ class PopulationGroup(PopulationGroupProperties):
             params=PopulationGroupParams(
                 size=group_data["size"],
                 base_healthcare=group_data["base_healthcare"],
-                healthcare_capacity=group_data["healthcare_capacity"]
+                healthcare_capacity=group_data["healthcare_capacity"],
+                education_level=group_data.get("education_level"),
             ),
             rng=rng,
         )
@@ -83,7 +85,7 @@ class PopulationGroup(PopulationGroupProperties):
 
         self.state.employment_rate = self.state.employed / self.size if self.size > 0 else 0
 
-    def compute_food_consumption(self):
+    def compute_food_consumption(self) -> float:
         food_consumption = self.size * (3 - self.sick_rate)
         return food_consumption
     

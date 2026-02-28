@@ -16,6 +16,8 @@ def collect_invariant_errors(core):
                         errors.append(f"{city.name}: negative group size")
                     if group.sick < 0:
                         errors.append(f"{city.name}: negative sick count")
+                    if group.money < 0:
+                        errors.append(f"{city.name}: negative group money")
                     if group.employed < 0:
                         errors.append(f"{city.name}: negative employed count")
                     if group.employed > group.size:
@@ -27,6 +29,10 @@ def collect_invariant_errors(core):
                         errors.append(f"{city.name}: negative firm employment")
                     if firm.total_productivity < 0:
                         errors.append(f"{city.name}: negative firm productivity")
+                    if firm.market_capital < 0:
+                        errors.append(f"{city.name}: negative firm market capital")
+                if city.state.treasury < 0:
+                    errors.append(f"{city.name}: negative city treasury")
     return errors
 
 

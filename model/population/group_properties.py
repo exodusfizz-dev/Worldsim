@@ -7,6 +7,7 @@ class PopulationGroupParams:
     size: int
     base_healthcare: float
     healthcare_capacity: int
+    education_level: str | None = None
 
 @dataclass
 class PopulationGroupState:
@@ -38,6 +39,10 @@ class PopulationGroupProperties:
     @property
     def healthcare_capacity(self):
         return self.p.healthcare_capacity
+
+    @property
+    def education_level(self):
+        return self.p.education_level
 
     @property
     def births(self):
@@ -94,3 +99,11 @@ class PopulationGroupProperties:
     @employable.setter
     def employable(self, value):
         self.state.employable = value
+
+    @property
+    def employed(self):
+        return self.state.employed
+
+    @employed.setter
+    def employed(self, value):
+        self.state.employed = value
