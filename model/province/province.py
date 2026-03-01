@@ -1,26 +1,13 @@
 """Province model and intercity migration orchestration."""
 
 from dataclasses import dataclass, field
-from model.migration import GroupMigrationEvent, Migration
+from model.migration import Migration
+from model.province.province_properties import (ProvinceParams,
+                                                ProvinceState,
+                                                ProvinceProperties)
 
 
-@dataclass
-class ProvinceParams:
-    """Immutable construction parameters for a province."""
-
-    name: str
-    area: int
-    cities: list
-
-
-@dataclass
-class ProvinceState:
-    """Mutable province-level runtime state."""
-
-    migrations: list[GroupMigrationEvent] = field(default_factory=list)
-
-
-class Province:
+class Province(ProvinceProperties):
     """Province object owning a list of cities."""
 
     def __init__(self, cfg: dict, rng, params: ProvinceParams) -> None:
@@ -48,22 +35,6 @@ class Province:
             rng=rng,
         )
 
-    @property
-    def name(self) -> str:
-        return self.p.name
-
-    @property
-    def cities(self) -> list:
-        return self.p.cities
-
-    @property
-    def area(self) -> int:
-        return self.p.area
-
-    @property
-    def migrations(self) -> list[GroupMigrationEvent]:
-        """Read-only log of intercity migration events for the latest tick."""
-        return self.state.migrations
 
     def tick(self) -> None:
         '''Runs one time step for the province, and all cities within it.'''
@@ -76,8 +47,6 @@ class Province:
         self.state.migrations = []
         if not self.cfg.get("migration", {}).get("enabled", True):
             return
-
-        touched_cities: set = set()
 
         for source_city in self.p.cities:
             candidates = [
@@ -97,8 +66,5 @@ class Province:
                 continue
 
             self.state.migrations.extend(events)
-            touched_cities.add(source_city)
-            touched_cities.add(target_city)
-
-        for city in touched_cities:
-            city.refresh_totals()
+            source_city.refresh_totals()
+            target_city.refresh_totals()
