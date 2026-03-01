@@ -33,19 +33,19 @@ class LabourMarket:
         self.rng = rng
         self.country_policy = country_policy
 
-    def compute_supply(self, populations):
+    def compute_supply(self, populations) -> tuple[list[int], int]:
         """Return per-group labour supply and total supply."""
         group_supply = [int(group.size * max(group.employable, 0)) for group in populations]
         total_supply = sum(group_supply)
         return group_supply, total_supply
 
-    def compute_labour_demand(self, firms):
+    def compute_labour_demand(self, firms) -> tuple[list[int], int]:
         """Return per-firm demand and total demand."""
         firm_demands = [max(int(firm.labour_demand()), 0) for firm in firms]
         total_demand = sum(firm_demands)
         return firm_demands, total_demand
 
-    def is_eligible(self, group, firm):
+    def is_eligible(self, group, firm) -> bool:
         """Eligibility hook for future education/skill constraints."""
         del group, firm
         return True

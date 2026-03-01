@@ -15,7 +15,8 @@ class Firm(FirmProperties):
         self.state.market_capital = self.p.capital if self.p.capital is not None else 0.0
 
     @classmethod
-    def from_dict(cls, firm_data: dict, rng, country_policy: None = None):
+    def from_dict(cls, firm_data: dict, rng, country_policy: None = None) -> "Firm":
+        '''Create a new firm instance from dictionary data.'''
         return cls(
             params=FirmParams(
                 productivity=firm_data["productivity"],
@@ -30,7 +31,7 @@ class Firm(FirmProperties):
             rng=rng,
         )
 
-    def labour_demand(self, market_capital: float | None = None, market_wage: float | None = None):
+    def labour_demand(self, market_capital: float | None = None, market_wage: float | None = None) -> int:
         '''Limiting factor of employment is either:
         The production capacity / output per worker,
         Or the capital available to pay workers'''
@@ -49,7 +50,7 @@ class Firm(FirmProperties):
         return max(min(prod_limit, cap_limit), 0)
 
 
-    def update_total_productivity(self):
+    def update_total_productivity(self) -> float:
 
         self.total_productivity = max(
             min(self.p.productivity * self.employed, self.p.production_capacity),
