@@ -35,15 +35,15 @@ class LabourMarket:
 
     def compute_supply(self, populations) -> tuple[list[int], int]:
         """Return per-group labour supply and total supply."""
-        group_supply = [int(group.size * max(group.employable, 0)) for group in populations]
-        total_supply = sum(group_supply)
-        return group_supply, total_supply
+        per_g_supply = [int(group.size * max(group.employable, 0)) for group in populations]
+        total_supply = sum(per_g_supply)
+        return per_g_supply, total_supply
 
     def compute_labour_demand(self, firms) -> tuple[list[int], int]:
         """Return per-firm demand and total demand."""
-        firm_demands = [max(int(firm.labour_demand()), 0) for firm in firms]
-        total_demand = sum(firm_demands)
-        return firm_demands, total_demand
+        per_f_demand = [max(int(firm.labour_demand()), 0) for firm in firms]
+        total_demand = sum(per_f_demand)
+        return per_f_demand, total_demand
 
     def is_eligible(self, group, firm) -> bool:
         """Eligibility hook for future education/skill constraints."""
@@ -71,8 +71,10 @@ class LabourMarket:
         if total_supply == 0 or total_demand == 0:
             return result
 
-        remaining_supply = per_g_supply[:]
-        remaining_demand = per_f_demand[:]
+        remaining_supply = total_supply
+        remaining_demand = total_demand
+        remaining_per_g_supply = per_g_supply[:]
+        remaining_per_f_demand = per_f_demand[:]
 
         firm_order = sorted(
             range(len(firms)),
@@ -80,42 +82,51 @@ class LabourMarket:
             reverse=True,
         )
 
-        for firm_index in firm_order:
-            if remaining_demand[firm_index] <= 0:
-                continue
-            firm = firms[firm_index]
-            if firm.state.market_capital <= 0 or firm.wage <= 0:
-                continue
-
-            for group_index, group in enumerate(populations):
-                if remaining_demand[firm_index] <= 0:
-                    break
-                if remaining_supply[group_index] <= 0:
+        while remaining_supply > (total_supply * 0.1) and remaining_demand > (total_demand * 0.1):
+            for firm_index in firm_order:
+                if remaining_per_f_demand[firm_index] <= 0:
                     continue
-                if not self.is_eligible(group, firm):
+                firm = firms[firm_index]
+                if firm.state.market_capital <= 0 or firm.wage <= 0:
                     continue
 
-                workers = min(remaining_supply[group_index], remaining_demand[firm_index])
-                if workers <= 0:
-                    continue
+                for group_index, group in enumerate(populations):
+                    if remaining_per_f_demand[firm_index] <= 0:
+                        break
+                    if remaining_per_g_supply[group_index] <= 1:
+                        continue
 
-                gross_pay = workers * firm.wage
-                result.flows.append(
-                    LabourFlow(
-                        group_index=group_index,
-                        firm_index=firm_index,
-                        workers=workers,
-                        wage_rate=firm.wage,
-                        gross_pay=gross_pay,
+                    if not self.is_eligible(group, firm):
+                        continue
+
+                    p = self.calc_employment_probability(remaining_supply=remaining_supply,
+                                                        remaining_demand=remaining_demand,
+                                                        group=group,
+                                                        firm=firm)
+
+                    workers = min(self.draw_count(supply=remaining_per_g_supply[group_index],
+                                              probability=p),
+                                              per_f_demand[firm_index])
+
+                    gross_pay = workers * firm.wage
+                    result.flows.append(
+                        LabourFlow(
+                            group_index=group_index,
+                            firm_index=firm_index,
+                            workers=workers,
+                            wage_rate=firm.wage,
+                            gross_pay=gross_pay,
+                        )
                     )
-                )
-                result.group_employed[group_index] += workers
-                result.firm_employed[firm_index] += workers
-                result.group_income[group_index] += gross_pay
-                result.firm_wage_bill[firm_index] += gross_pay
+                    result.group_employed[group_index] += workers
+                    result.firm_employed[firm_index] += workers
+                    result.group_income[group_index] += gross_pay
+                    result.firm_wage_bill[firm_index] += gross_pay
 
-                remaining_supply[group_index] -= workers
-                remaining_demand[firm_index] -= workers
+                    remaining_supply -= workers
+                    remaining_demand -= workers
+                    remaining_per_g_supply[group_index] -= workers
+                    remaining_per_f_demand[firm_index] -= workers
 
         result.total_employed = sum(result.group_employed)
 
@@ -128,3 +139,37 @@ class LabourMarket:
             firm.market_capital = max(firm.market_capital - result.firm_wage_bill[firm_index], 0.0)
 
         return result
+
+
+    def draw_count(self, supply: float, probability: float) -> int:
+        """Draw integer employees using RNG binomial when available."""
+        n = max(int(supply), 0)
+        p = max(min(probability, 1.0), 0.0)
+        if n == 0 or p <= 0:
+            return 0
+
+        if self.rng is not None and hasattr(self.rng, "binomial"):
+            return int(self.rng.binomial(n, p))
+
+        return min(int(round(n * p)), int(supply))
+
+    def calc_employment_probability(self,
+                                    remaining_supply: float,
+                                    remaining_demand: float,
+                                    group,
+                                    firm
+                                    ) -> float:
+        """Calculate the probability of a potential employee being employed."""
+        if remaining_demand <= 0 or remaining_supply <= 0:
+            return 0.0
+        probability = min(remaining_supply / remaining_demand, 1)
+
+        firm_ed = getattr(firm, "education_wanted", 0)
+        group_ed = getattr(group, "education", 0)
+        if firm_ed > 0 and group_ed > 0:
+            probability *= group_ed / firm_ed * 0.1
+
+
+        return min(probability, 1)
+
+

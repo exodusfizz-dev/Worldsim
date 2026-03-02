@@ -12,7 +12,7 @@ class MarketParams:
 class MarketState:
     pass
 
-class Market:
+class SupplyChain:
     def __init__(self, params: MarketParams, distance_provider, rng):
         self.p = params
         self.rng = rng
@@ -23,7 +23,7 @@ class Market:
     def build_from(cls,
         rng,
         distance_provider: DistanceProvider | None = None,
-        ) -> "Market":
+        ) -> "SupplyChain":
 
         return cls(
             params=MarketParams(),

@@ -20,9 +20,8 @@ class PopulationGroupState:
     deaths: int = 0
     employable: float = 0.0
     employed: int = 0
-    employment_rate: float = 0.0
-    migration_attractiveness: float = 0.0
     money: float = 0.0
+    education: float = 1.0
 
 @dataclass
 class PopulationGroupProperties:
@@ -30,11 +29,11 @@ class PopulationGroupProperties:
 
     @property
     def size(self):
-        return self.p.size
+        return self.state.size
 
     @size.setter
     def size(self, value):
-        self.p.size = value
+        self.state.size = value
 
     @property
     def healthcare_capacity(self):
@@ -81,17 +80,12 @@ class PopulationGroupProperties:
 
     @property
     def migration_attractiveness(self):
-        return self.state.migration_attractiveness
-    @migration_attractiveness.setter
-    def migration_attractiveness(self, value):
-        self.state.migration_attractiveness = value
+        return (self.state.healthcare * 0.3) + (self.employment_rate * 0.2)
 
     @property
     def employment_rate(self):
-        return self.state.employment_rate
-    @employment_rate.setter
-    def employment_rate(self, value):
-        self.state.employment_rate = value
+        return self.state.employed / self.size
+
 
     @property
     def employable(self):
@@ -107,3 +101,7 @@ class PopulationGroupProperties:
     @employed.setter
     def employed(self, value):
         self.state.employed = value
+
+    @property
+    def education(self):
+        return self.state.education

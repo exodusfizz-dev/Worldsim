@@ -8,6 +8,9 @@ class FirmParams:
     production_capacity: int
     ownership: str
     good: str
+    education_wanted: float = 1.0
+    # This is a placeholder that will allow labour_market to work before education is implemented.
+
     # transitional: optional in input_data.json
     capital: float | None = None
     wage: float | None = None
@@ -20,6 +23,7 @@ class FirmState:
     total_productivity: float = 0.0
     inventory: float = 0.0
     market_capital: float = 0.0
+
 
 class FirmProperties:
     '''Property accessors for firms.'''
@@ -62,3 +66,7 @@ class FirmProperties:
     @property
     def wage(self):
         return self.p.wage if self.p.wage is not None else 0.0
+
+    @property
+    def education_wanted(self):
+        return self.p.education_wanted

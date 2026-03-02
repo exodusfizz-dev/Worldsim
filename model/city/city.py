@@ -7,7 +7,6 @@ from model.city.city_data import CityData
 from model.economy import LabourMarket
 from model.economy.labour.labour_market import LabourClearResult
 from model.migration import GroupMigrationEvent, Migration
-from model.economy.trade import Market
 
 
 @dataclass

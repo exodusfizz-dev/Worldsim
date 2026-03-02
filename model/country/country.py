@@ -4,7 +4,7 @@ from dataclasses import dataclass
 
 from .country_properties import (CountryProperties,
                                               CountryParams)
-from model.economy.trade import Market
+from model.economy.trade import SupplyChain
 
 class Country(CountryProperties):
     '''
@@ -15,7 +15,7 @@ class Country(CountryProperties):
         self.cfg = cfg
         self.rng = rng
 
-        self.market = Market.build_from(rng=rng)
+        self.market = SupplyChain.build_from(rng=rng)
 
     @classmethod
     def from_dict(cls, country_data, provinces, rng, cfg) -> "Country":
