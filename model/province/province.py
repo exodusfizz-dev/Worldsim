@@ -66,5 +66,3 @@ class Province(ProvinceProperties):
                 continue
 
             self.state.migrations.extend(events)
-            source_city.refresh_totals()
-            target_city.refresh_totals()

@@ -6,7 +6,7 @@ from model.protocols import DistanceProvider, NeutralDistanceProvider
 
 @dataclass
 class MarketParams:
-    city_id: str
+    pass
 
 @dataclass
 class MarketState:
@@ -22,14 +22,14 @@ class Market:
     @classmethod
     def build_from(cls,
         rng,
-        city_id: str | None = None,
         distance_provider: DistanceProvider | None = None,
         ) -> "Market":
 
         return cls(
-            params=MarketParams(
-                city_id=city_id,
-            ),
+            params=MarketParams(),
             distance_provider=distance_provider,
             rng=rng,
         )
+
+    def request(self):
+        pass
