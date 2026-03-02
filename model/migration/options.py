@@ -13,6 +13,3 @@ class MigrationOptions:
     intergroup_rate: float = 0.0
     intercity_rate: float = 0.0
 
-
-# Backward-compatible alias for older imports.
-MigrationConfig = MigrationOptions

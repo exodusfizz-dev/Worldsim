@@ -26,11 +26,10 @@ class CityState:
     employed: int = 0
     migrations: list[GroupMigrationEvent] = field(default_factory=list)
     last_food_deficit: float | None = None
-    migration_attractiveness: float = 0.0
     inv: dict[str, float] = field(default_factory=dict)
-    total_population: float = 0.0
     treasury: float = 0.0
     labour_result: LabourClearResult | None = None
+    starving: bool = False
 
 
 class City:
@@ -50,17 +49,12 @@ class City:
         )
 
         self.labour_market = LabourMarket(self.rng, country_policy=None)
-        self.market = Market.build_from(
-            rng=self.rng,
-            city_id=self.name
-        )
 
         for firm in self.p.firms:
             self.state.inv.setdefault(firm.good, 0.0)
         if "food" not in self.state.inv:
             self.state.inv["food"] = 0.0
 
-        self.refresh_totals()
         self.city_data = CityData(self)
 
     @classmethod
@@ -93,20 +87,15 @@ class City:
 
     @property
     def migration_attractiveness(self) -> float:
-        return self.state.migration_attractiveness
+        if self.state.starving:
+            return 0.0
+        return sum(group.migration_attractiveness for group in self.p.populations)
 
-    @migration_attractiveness.setter
-    def migration_attractiveness(self, value: float) -> None:
-        self.state.migration_attractiveness = value
 
     @property
     def total_population(self) -> float:
         """Canonical city population used by migration and reporting."""
-        return self.state.total_population
-
-    @total_population.setter
-    def total_population(self, value: float) -> None:
-        self.state.total_population = value
+        return sum(group.size for group in self.populations)
 
     @property
     def group_count(self) -> int:
@@ -125,21 +114,8 @@ class City:
     def firms(self) -> list:
         return self.p.firms
 
-    def refresh_totals(self) -> None:
-        """Recompute derived totals needed by migration and reporting."""
-        self.total_population = sum(group.size for group in self.p.populations)
-        if self.p.populations:
-            self.state.migration_attractiveness = (
-                sum(group.migration_attractiveness for group in self.p.populations)
-                / len(self.p.populations)
-            )
-        else:
-            self.state.migration_attractiveness = 0.0
-
     def tick(self) -> None:
-        for group in self.p.populations:
-            group.tick()
-        self.refresh_totals()
+        self.tick_groups()
 
         self.state.labour_result = self.labour_market.clear_market(
             populations=self.p.populations,
@@ -160,7 +136,6 @@ class City:
 
         self.consume_food()
         self.run_migrations()
-        self.refresh_totals()
         self.city_data.update_city_data()
 
     def run_migrations(self) -> None:
@@ -218,6 +193,10 @@ class City:
 
         if total_deficit > 0:
             self.state.last_food_deficit = total_deficit
-            self.state.migration_attractiveness = 0.0
+            self.state.starving = True
         else:
             self.state.last_food_deficit = None
+
+    def tick_groups(self):
+        for group in self.p.populations:
+            group.tick()
