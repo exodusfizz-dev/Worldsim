@@ -3,8 +3,6 @@ from model.population.group_properties import (PopulationGroupProperties,
                                                PopulationGroupParams,
                                                PopulationGroupState)
 
-from dataclasses import dataclass
-
 
 class PopulationGroup(PopulationGroupProperties):
     '''Population group representing a demographic segment of a city's population.'''
@@ -43,7 +41,7 @@ class PopulationGroup(PopulationGroupProperties):
 
 
     def tick(self): # Simulate one time step - e.g. one week for now
-        
+
         self.update_demographics()
 
         self.update_sick()
@@ -88,7 +86,7 @@ class PopulationGroup(PopulationGroupProperties):
     def compute_food_consumption(self) -> float:
         food_consumption = self.size * (3 - self.sick_rate)
         return food_consumption
-    
+
     def starve(self, food_deficit):
         if self.size <= 0:
             return

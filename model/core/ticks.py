@@ -61,9 +61,12 @@ class Core:
         for country_data in data["countries"]:
             provinces = self.build_provinces(data=country_data)
 
-            name = country_data["name"]
             cfg = self.country_cfg
-            country_obj = Country(provinces, name, cfg, rng=self.rng)
+
+            country_obj = Country.from_dict(country_data,
+                                            provinces,
+                                            cfg=cfg,
+                                            rng=self.rng)
 
             self.countries.append(country_obj)
 
