@@ -148,8 +148,7 @@ class City:
         if self.state.labour_result is None:
             return
 
-        tax_cfg = self.cfg.get("tax", {})
-        labour_tax_rate = max(min(tax_cfg.get("labour_tax_rate", 0.0), 1.0), 0.0)
+        labour_tax_rate = 0.2
         if labour_tax_rate <= 0:
             return
 

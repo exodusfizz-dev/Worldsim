@@ -2,7 +2,7 @@
 Report function is part of the visualisation module. It print data from the model, called in main.py
 '''
 
-def report(week, core, spr):
+def report(week, core, spr) -> None:
     '''
     Outputs data for main. Reporting on provinces can be enabled or disabled in config.
     
@@ -58,6 +58,7 @@ def report_provinces(country, week):
                 print(f"Food deficit: {city.last_food_deficit:.2f} Kgs")
             else:
                 print("No food deficit")
+            print(f"City treasury: {city.state.treasury}")
 
             for migration in city.migrations: # Prints migration data
 
