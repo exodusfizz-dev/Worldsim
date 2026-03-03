@@ -15,7 +15,13 @@ class Country(CountryProperties):
         self.cfg = cfg
         self.rng = rng
 
-        self.market = SupplyChain.build_from(rng=rng)
+        all_firms = [
+            firm
+            for province in self.provinces
+            for city in province.cities
+            for firm in city.firms
+        ]
+        self.market = SupplyChain.build_from(rng=rng, firms=all_firms)
 
     @classmethod
     def from_dict(cls, country_data, provinces, rng, cfg) -> "Country":
