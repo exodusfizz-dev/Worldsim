@@ -25,6 +25,7 @@ class IntergroupMigrationEngine:
 
     def migrate_within_city(self, city: "City", intergroup_rate: float) -> list[GroupMigrationEvent]:
         """Move integer migrants between groups inside one city."""
+
         events: list[GroupMigrationEvent] = []
         if intergroup_rate <= 0:
             return events

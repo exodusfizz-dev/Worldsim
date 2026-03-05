@@ -5,6 +5,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from model.city.city_data import CityData
 from model.economy import LabourMarket
+from model.economy.labour.labour_market import LabourClearResult
 from model.migration import GroupMigrationEvent, Migration
 
 
@@ -24,9 +25,10 @@ class CityState:
     employed: int = 0
     migrations: list[GroupMigrationEvent] = field(default_factory=list)
     last_food_deficit: float | None = None
-    migration_attractiveness: float = 0.0
     inv: dict[str, float] = field(default_factory=dict)
-    total_population: float = 0.0
+    treasury: float = 0.0
+    labour_result: LabourClearResult | None = None
+    starving: bool = False
 
 
 class City:
@@ -52,7 +54,6 @@ class City:
         if "food" not in self.state.inv:
             self.state.inv["food"] = 0.0
 
-        self.refresh_totals()
         self.city_data = CityData(self)
 
     @classmethod
@@ -85,20 +86,15 @@ class City:
 
     @property
     def migration_attractiveness(self) -> float:
-        return self.state.migration_attractiveness
+        if self.state.starving:
+            return 0.0
+        return sum(group.migration_attractiveness for group in self.p.populations)
 
-    @migration_attractiveness.setter
-    def migration_attractiveness(self, value: float) -> None:
-        self.state.migration_attractiveness = value
 
     @property
     def total_population(self) -> float:
         """Canonical city population used by migration and reporting."""
-        return self.state.total_population
-
-    @total_population.setter
-    def total_population(self, value: float) -> None:
-        self.state.total_population = value
+        return sum(group.size for group in self.populations)
 
     @property
     def group_count(self) -> int:
@@ -117,38 +113,28 @@ class City:
     def firms(self) -> list:
         return self.p.firms
 
-    def refresh_totals(self) -> None:
-        """Recompute derived totals needed by migration and reporting."""
-        self.total_population = sum(group.size for group in self.p.populations)
-        if self.p.populations:
-            self.state.migration_attractiveness = (
-                sum(group.migration_attractiveness for group in self.p.populations)
-                / len(self.p.populations)
-            )
-        else:
-            self.state.migration_attractiveness = 0.0
-
     def tick(self) -> None:
-        for group in self.p.populations:
-            group.tick()
-        self.refresh_totals()
+        self.tick_groups()
 
-        self.state.employed = self.labour_market.clear_market(
+        self.state.labour_result = self.labour_market.clear_market(
             populations=self.p.populations,
             firms=self.p.firms,
         )
+        self.state.employed = self.state.labour_result.total_employed
+        self.settle_labour_tax()
 
         for firm in self.p.firms:
-            firm.tick()
             if firm.good not in self.state.inv:
                 self.state.inv.setdefault(firm.good, 0.0)
+            firm.tick()
 
             if firm.ownership == "state":
-                self.state.inv[firm.good] += firm.transfer_to_city()
+                transfer = firm.transfer_to_city()
+                self.state.inv[firm.good] += transfer
+                firm.market_capital += transfer * (1 / firm.p.productivity) * 30
 
         self.consume_food()
         self.run_migrations()
-        self.refresh_totals()
         self.city_data.update_city_data()
 
     def run_migrations(self) -> None:
@@ -157,20 +143,58 @@ class City:
         if self.cfg.get("migration", {}).get("enabled", True):
             self.state.migrations.extend(self.migration.migrate_within_city(self))
 
+    def settle_labour_tax(self) -> None:
+        """Collect labour income tax from groups."""
+        if self.state.labour_result is None:
+            return
+
+        labour_tax_rate = 0.2
+        if labour_tax_rate <= 0:
+            return
+
+        for group, income in zip(self.p.populations, self.state.labour_result.group_income):
+            tax = max(income, 0.0) * labour_tax_rate
+            paid = min(group.money, tax)
+            group.money -= paid
+            self.state.treasury += paid
+
     def consume_food(self) -> None:
-        """Consume food and apply starvation effects when supply is insufficient."""
-        food_needed = sum(g.compute_food_consumption() for g in self.p.populations)
-        if food_needed < self.state.inv["food"]:
-            self.state.inv["food"] -= food_needed
+        """Groups buy and consume food from city inventory."""
+        if not self.p.populations:
             self.state.last_food_deficit = None
             return
 
-        self.state.last_food_deficit = food_needed - self.state.inv["food"]
-        self.state.migration_attractiveness = 0.0
-        self.state.inv["food"] = 0.0
+        market_cfg = self.cfg.get("market", {})
+        food_price = max(float(market_cfg.get("food_price", 1.0)), 0.0)
+        total_deficit = 0.0
 
-        if not self.p.populations:
-            return
-        per_group_deficit = self.state.last_food_deficit // len(self.p.populations)
         for group in self.p.populations:
-            group.starve(food_deficit=per_group_deficit)
+            needed = group.compute_food_consumption()
+            available = self.state.inv["food"]
+            if available <= 0:
+                purchased = 0.0
+            elif food_price <= 0:
+                purchased = min(needed, available)
+            else:
+                affordable = group.money / food_price
+                purchased = min(needed, available, affordable)
+
+            if food_price > 0 and purchased > 0:
+                spent = purchased * food_price
+                group.money = max(group.money - spent, 0.0)
+            self.state.inv["food"] -= purchased
+
+            deficit = max(needed - purchased, 0.0)
+            total_deficit += deficit
+            if deficit > 0:
+                group.starve(food_deficit=deficit)
+
+        if total_deficit > 0:
+            self.state.last_food_deficit = total_deficit
+            self.state.starving = True
+        else:
+            self.state.last_food_deficit = None
+
+    def tick_groups(self):
+        for group in self.p.populations:
+            group.tick()

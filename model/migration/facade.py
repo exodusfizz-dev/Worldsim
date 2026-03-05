@@ -1,11 +1,11 @@
-"""Public migration facade preserving the existing API."""
+"""Public migration facade preserving the API."""
 
 from typing import TYPE_CHECKING, Sequence
 
 from model.migration.allocation import MigrationAllocator
 from model.migration.engines import IntercityMigrationEngine, IntergroupMigrationEngine
 from model.migration.options import MigrationOptions
-from model.migration.protocols import DistanceProvider, NeutralDistanceProvider
+from model.protocols import DistanceProvider, NeutralDistanceProvider
 from model.migration.selectors import WeightedTargetSelector
 from model.migration.types import GroupMigrationEvent
 
@@ -81,15 +81,18 @@ class Migration:
         return self.options.intercity_rate
 
     def choose_target_city(self, source_city: "City", candidates: Sequence["City"]) -> "City | None":
+        '''Uses the intercity engine's selector to choose a target city for migration.'''
         return self.intercity_engine.choose_target_city(source_city=source_city, candidates=candidates)
 
     def migrate_within_city(self, city: "City") -> list[GroupMigrationEvent]:
+        '''Uses the intergroup engine to move migrants between groups inside one city.'''
         return self.intergroup_engine.migrate_within_city(
             city=city,
             intergroup_rate=self.intergroup_rate,
         )
 
     def migrate_between_cities(self, source_city: "City", target_city: "City") -> list[GroupMigrationEvent]:
+        '''Uses the intercity engine to move migrants between cities.'''
         return self.intercity_engine.migrate_between_cities(
             source_city=source_city,
             target_city=target_city,
