@@ -1,2 +1,2 @@
 from .protocols import DistanceProvider, NeutralDistanceProvider
-from .location_service import LocationService
+from .location.world import WorldMap
