@@ -2,7 +2,7 @@ CONFIG = {
 
     "seed":
         {"seed": 42,
-         "use": True}, # Random seed for later use
+         "use": True},
 
     "main":
         {"reporter":     # Controls reporting system; what is printed/saved and how often
@@ -18,7 +18,8 @@ CONFIG = {
     "city": 
         {"migration":
             {"enabled": True,
-            "intergroup_rate": 0.0005, # Default = 0.0005 = 0.05%
+            "intergroup_rate": 0.0005, 
+            # Default = 0.0005 = 0.05%
             }
         },
 
@@ -27,9 +28,6 @@ CONFIG = {
             {"enabled": True,
              "intercity_rate": 0.0001, 
             # Default = 0.0001 = 0.01%
-             # Future distance hooks:
-             # "distance_enabled": False,
-             # "distance_mode": "neutral",  # placeholder for matrix/provider modes
             }
         },
 

@@ -25,6 +25,9 @@ class Core:
         for country in self.countries:
             country.tick()
 
+
+
+
     def _build_population_groups(self, groups):
         return [
             PopulationGroup.from_dict(group_data=group,

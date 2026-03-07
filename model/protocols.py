@@ -1,7 +1,6 @@
 """Distance weighting protocols for migration."""
 
 from typing import Protocol
-from .location_service import LocationService
 
 class DistanceProvider(Protocol):
     """Interface for distance/friction weighting."""
@@ -17,7 +16,7 @@ class NeutralDistanceProvider(DistanceProvider):
         return 1.0
 
 class EuclideanDistanceProvider(DistanceProvider):
-    def __init__(self, location_service: LocationService):
+    def __init__(self, location_service):
         self.location_service = location_service
 
     def distance(self, from_entity: str, to_entity: str) -> float:
