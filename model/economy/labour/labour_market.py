@@ -82,7 +82,7 @@ class LabourMarket:
             reverse=True,
         )
 
-        while remaining_supply > (total_supply * 0.1) and remaining_demand > (total_demand * 0.1):
+        for _ in range (5):
             for firm_index in firm_order:
                 if remaining_per_f_demand[firm_index] <= 0:
                     continue

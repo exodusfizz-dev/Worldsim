@@ -1,1 +1,1 @@
-from .world import WorldMap
+from .world_data_loader import WorldDataLoader

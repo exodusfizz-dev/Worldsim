@@ -5,6 +5,7 @@ import numpy as np
 from model.economy import Firm
 from model.population import PopulationGroup
 from model.country import Country
+from model.location.world_data_loader import WorldDataLoader
 
 
 class Core:
@@ -58,8 +59,16 @@ class Core:
         return [self._build_province(province_data) for province_data in data["provinces"]]
 
     def build_sim(self):
-        with open("input_data.json") as f:
-            data = json.load(f)
+        """Build simulation from Natural Earth data."""
+        loader = WorldDataLoader(
+            rng=self.rng,
+            city_cfg=self.city_cfg,
+            province_cfg=self.province_cfg,
+            country_cfg=self.country_cfg,
+        )
+
+        countries_to_load = ["United Kingdom"]
+        data = {"countries": loader.load_world(countries_to_load)}
 
         for country_data in data["countries"]:
             provinces = self.build_provinces(data=country_data)
@@ -72,5 +81,3 @@ class Core:
                                             rng=self.rng)
 
             self.countries.append(country_obj)
-
-
