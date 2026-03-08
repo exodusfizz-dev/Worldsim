@@ -164,8 +164,7 @@ class City:
             self.state.last_food_deficit = None
             return
 
-        market_cfg = self.cfg.get("market", {})
-        food_price = max(float(market_cfg.get("food_price", 1.0)), 0.0)
+        food_price = 5.0 # Placeholder pre market
         total_deficit = 0.0
 
         for group in self.p.populations:
