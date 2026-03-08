@@ -23,7 +23,8 @@ def collect_invariant_errors(core):
                     if group.employed > group.size:
                         errors.append(f"{city.name}: employed exceeds group size")
                 for firm in city.firms:
-                    if firm.inventory < 0:
+                    good_inventory = firm.inv.get(firm.good, 0.0)
+                    if good_inventory < 0:
                         errors.append(f"{city.name}: negative firm inventory for {firm.good}")
                     if firm.employed < 0:
                         errors.append(f"{city.name}: negative firm employment")
