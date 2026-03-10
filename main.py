@@ -9,6 +9,7 @@ from visualisation.graph import graph_total_pop
 
 MAIN_CFG = CONFIG["main"]
 REPORTER_CFG = MAIN_CFG.get("reporter", {})
+MAP_DISPLAY_CFG = MAIN_CFG.get("map_display", {})
 
 
 def main():
@@ -20,10 +21,14 @@ def main():
         seed_cfg=CONFIG.get("seed"),
         city_cfg=CONFIG.get("city"),
         province_cfg=CONFIG.get("province"),
-        country_cfg=CONFIG.get("country")
+        country_cfg=CONFIG.get("country"),
+        location_cfg=CONFIG.get("location")
         )
 
     core.build_sim()
+
+    if MAP_DISPLAY_CFG.get("enabled", False):
+        pass
 
     for week in range(1, 52):
 

@@ -9,7 +9,7 @@ from model.location.world_data_loader import WorldDataLoader
 
 
 class Core:
-    def __init__(self, seed_cfg, city_cfg, province_cfg, country_cfg):
+    def __init__(self, seed_cfg, city_cfg, province_cfg, country_cfg, location_cfg):
 
         if seed_cfg['use']:
             self.rng = np.random.default_rng(seed_cfg['seed'])
@@ -19,6 +19,7 @@ class Core:
         self.city_cfg = city_cfg
         self.province_cfg = province_cfg
         self.country_cfg = country_cfg
+        self.location_cfg = location_cfg
 
         self.countries = []
 
@@ -65,6 +66,7 @@ class Core:
             city_cfg=self.city_cfg,
             province_cfg=self.province_cfg,
             country_cfg=self.country_cfg,
+            location_cfg=self.location_cfg
         )
 
         countries_to_load = ["United Kingdom"]

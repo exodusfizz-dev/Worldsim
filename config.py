@@ -13,6 +13,9 @@ CONFIG = {
         "pop_graph":
             {"enabled": False,
             },
+        "map_display":
+            {"enabled": True,
+            },
         },
 
     "city": 
