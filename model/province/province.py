@@ -30,6 +30,7 @@ class Province(ProvinceProperties):
                 name=province_data["name"],
                 area=province_data["area"],
                 cities=cities,
+                geometry=province_data["geometry"],
             ),
             cfg=cfg,
             rng=rng,

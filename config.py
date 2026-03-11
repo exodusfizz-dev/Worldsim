@@ -39,4 +39,9 @@ CONFIG = {
          {"enabled": True,
           }
         },
+
+    "location":
+        {"min_cities_per_province": 5,
+         "province_collation_threshold": 5
+        },
 }

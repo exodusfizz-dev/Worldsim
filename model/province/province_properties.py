@@ -10,6 +10,7 @@ class ProvinceParams:
     name: str
     area: int
     cities: list
+    geometry: object
 
 
 @dataclass
