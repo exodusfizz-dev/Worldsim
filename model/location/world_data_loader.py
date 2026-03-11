@@ -10,6 +10,8 @@ from shapely.geometry import Point
 from .load_maps import load_natural_earth_data
 from model.population import PopulationGenerator
 from model.economy.industry import FirmGenerator
+from .assign_cities import assign_cities
+from model.location.province_collator import CountryPolyStrategy, RegionStrategy, ResolveProvinces
 
 
 @dataclass
@@ -24,7 +26,7 @@ class LocationMetadata:
 class WorldDataLoader:
     """Load Natural Earth data and procedurally generate world simulation."""
 
-    def __init__(self, rng, city_cfg: dict, province_cfg: dict, country_cfg: dict):
+    def __init__(self, rng, city_cfg: dict, province_cfg: dict, country_cfg: dict, location_cfg: dict):
         """
         Args:
             rng: numpy random generator
@@ -34,6 +36,7 @@ class WorldDataLoader:
         self.city_cfg = city_cfg
         self.province_cfg = province_cfg
         self.country_cfg = country_cfg
+        self.location_cfg: dict = location_cfg or {}
 
         self.population_gen = PopulationGenerator(rng)
         self.firm_gen = FirmGenerator(rng)
@@ -64,38 +67,87 @@ class WorldDataLoader:
 
         return country_data
 
+    def _select_province_collator(self, num_base_provinces: int) -> "ResolveProvinces":
+        """Pick a province collator strategy."""
+        if num_base_provinces <= self.location_cfg.get("province_collation_threshold", 5):
+            return CountryPolyStrategy()
+        return RegionStrategy()
+
+    def _build_province_output(
+        self,
+        provinces: dict[int, dict],
+        base_provinces: gpd.GeoDataFrame,
+        cities: gpd.GeoDataFrame,
+        country_name: str,
+    ) -> list[dict]:
+        """Convert collated provinces based on base provinces into data for sim builder."""
+        has_any_city = not cities.empty
+        output_items: list[dict] = []
+
+        for province in provinces.values():
+            city_ids = list(province.get("city_ids", []))
+            if has_any_city and not city_ids:
+                continue
+
+            province_name = province.get("name") or f"Province_{len(output_items)}"
+            geometry = province.get("geometry")
+
+            output_items.append(
+                {
+                    "name": province_name,
+                    "area": int(geometry.area * 111 * 111),  # Rough km^2 estimate
+                    "geometry": geometry,
+                    "cities": self._load_cities_for_province(city_ids=city_ids, cities_gdf=cities),
+                }
+            )
+
+        return output_items
+
     def _load_provinces_for_country(self, country_name: str) -> list[dict]:
         """Load provinces (admin_1) for a country."""
 
-        provinces = self.provinces_gdf[
+        base_provinces = self.provinces_gdf[
             self.provinces_gdf["admin"].str.lower() == country_name.lower()
-        ]
+        ].copy()
+        cities = self.cities_gdf[
+            self.cities_gdf["ADM0NAME"].str.lower() == country_name.lower()
+        ].copy()
 
-        province_list = []
-        for _, province_row in provinces.iterrows():
-            province_name = province_row["name"]
-            geometry = province_row.geometry
+        if base_provinces.empty:
+            return []
 
-            province_data = {
-                "name": province_name,
-                "area": int(geometry.area * 111 * 111),  # Rough km^2 estimate
-                "geometry": geometry,
-                "cities": self._load_cities_for_province(country_name, province_name),
-            }
-            province_list.append(province_data)
+        base_provinces = base_provinces.reset_index(drop=True)
+        base_provinces["base_id"] = base_provinces.index.astype(int)
 
-        return province_list
+        cities = cities.reset_index(drop=True)
+        cities["city_id"] = cities.index.astype(int)
+
+        city_assignments = assign_cities(base_provinces, cities)
+
+        min_cities = int(self.location_cfg.get("min_cities_per_province", 5))
+
+        collator = self._select_province_collator(len(base_provinces))
+
+        provinces = collator.collate_provinces(
+            base_provinces=base_provinces,
+            city_assignments=city_assignments,
+            min_cities=min_cities,
+        )
+
+        return self._build_province_output(
+            provinces=provinces,
+            base_provinces=base_provinces,
+            cities=cities,
+            country_name=country_name,
+        )
 
     def _load_cities_for_province(
-        self, country_name: str, province_name: str
+        self, city_ids: list[int], cities_gdf: gpd.GeoDataFrame
     ) -> list[dict]:
 
         """Load cities (populated places) for a province."""
 
-        cities = self.cities_gdf[
-            (self.cities_gdf["ADM0NAME"].str.lower() == country_name.lower())
-            & (self.cities_gdf["ADM1NAME"].str.lower() == province_name.lower())
-        ]
+        cities = cities_gdf[cities_gdf['city_id'].isin(city_ids)]
 
         city_list = []
         for idx, (_, city_row) in enumerate(cities.iterrows()):
