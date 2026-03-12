@@ -69,7 +69,7 @@ class Core:
             location_cfg=self.location_cfg
         )
 
-        countries_to_load = ["United Kingdom"]
+        countries_to_load = ["United Kingdom", "France", "Germany", "Italy", "Spain"]
         data = {"countries": loader.load_world(countries_to_load)}
 
         for country_data in data["countries"]:
