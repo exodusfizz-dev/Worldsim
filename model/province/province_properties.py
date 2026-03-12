@@ -37,3 +37,7 @@ class ProvinceProperties:
     def migrations(self) -> list[GroupMigrationEvent]:
         """Read-only log of intercity migration events for the latest tick."""
         return self.state.migrations
+
+    @property
+    def geometry(self):
+        return self.p.geometry

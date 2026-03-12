@@ -58,7 +58,7 @@ def report_provinces(country, week):
                 print(f"Food deficit: {city.last_food_deficit:.2f} Kgs")
             else:
                 print("No food deficit")
-            print(f"City treasury: {city.state.treasury}")
+            print(f"City treasury: {city.state.treasury:.2f}")
 
             for migration in city.migrations: # Prints migration data
 

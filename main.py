@@ -5,6 +5,7 @@ from config import CONFIG
 from model.core import Core
 from visualisation.report import report
 from visualisation.graph import graph_total_pop
+from visualisation.map_viewer import show_merged_provinces_map
 
 
 MAIN_CFG = CONFIG["main"]
@@ -28,7 +29,7 @@ def main():
     core.build_sim()
 
     if MAP_DISPLAY_CFG.get("enabled", False):
-        pass
+        show_merged_provinces_map(core)
 
     for week in range(1, 52):
 

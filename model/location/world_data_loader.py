@@ -1,12 +1,11 @@
 """
 Procedural world generation from Natural Earth data.
 
-Loads real geographic data and generates simulation entities based on actual city/province/country attributes.
+Loads real geographic data based on actual city/province/country attributes.
 """
 
 from dataclasses import dataclass
 import geopandas as gpd
-from shapely.geometry import Point
 from .load_maps import load_natural_earth_data
 from model.population import PopulationGenerator
 from model.economy.industry import FirmGenerator
@@ -90,7 +89,7 @@ class WorldDataLoader:
                 continue
 
             province_name = province.get("name") or f"Province_{len(output_items)}"
-            geometry = province.get("geometry")
+            geometry: object = province.get("geometry")
 
             output_items.append(
                 {
