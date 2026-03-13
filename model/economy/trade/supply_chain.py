@@ -1,5 +1,6 @@
 """Basic first version of market. Owned by a city."""
 
+import networkx as nx
 from dataclasses import dataclass
 from model.protocols import DistanceProvider, NeutralDistanceProvider
 

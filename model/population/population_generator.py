@@ -40,4 +40,4 @@ class PopulationGenerator:
                 "healthcare_capacity": max(100, int(group_size * 0.1)),
             })
 
-        return groups
+        return [group for group in groups if group["size"] > 0]
