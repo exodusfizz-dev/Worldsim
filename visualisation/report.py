@@ -10,7 +10,8 @@ def report(week, core, spr) -> None:
     :param core: core object - the whole sim
     '''
     print(f"------\n------\nWeek {week}: ")
-    for country in core.countries:
+    countries_to_report = [country for country in core.countries if country.name in core.country_cfg.get("report_countries", ["United Kingdom", "China"])]
+    for country in countries_to_report:
         print(f"Country: {country.name}")
         if spr:
             report_provinces(country, week)

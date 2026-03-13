@@ -10,7 +10,7 @@ from .load_maps import load_natural_earth_data
 from model.population import PopulationGenerator
 from model.economy.industry import FirmGenerator
 from .assign_cities import assign_cities
-from model.location.province_collator import CountryPolyStrategy, RegionStrategy, ResolveProvinces
+from model.location.province_collator import CountryPolyStrategy, RegionStrategy, ResolveProvinces, DefaultProvinces
 
 
 @dataclass
@@ -66,11 +66,13 @@ class WorldDataLoader:
 
         return country_data
 
-    def _select_province_collator(self, num_base_provinces: int) -> "ResolveProvinces":
+    def _select_province_collator(self, base_provinces: gpd.GeoDataFrame) -> "ResolveProvinces":
         """Pick a province collator strategy."""
-        if num_base_provinces <= self.location_cfg.get("province_collation_threshold", 5):
+        if len(base_provinces) <= self.location_cfg.get("province_collation_threshold", 5):
             return CountryPolyStrategy()
-        return RegionStrategy()
+        if base_provinces["region"].nunique() > 4:  # Arbitrary threshold for "many" regions
+            return RegionStrategy()
+        return DefaultProvinces()
 
     def _build_province_output(
         self,
@@ -125,7 +127,7 @@ class WorldDataLoader:
 
         min_cities = int(self.location_cfg.get("min_cities_per_province", 5))
 
-        collator = self._select_province_collator(len(base_provinces))
+        collator = self._select_province_collator(base_provinces)
 
         provinces = collator.collate_provinces(
             base_provinces=base_provinces,
@@ -168,9 +170,11 @@ class WorldDataLoader:
 
         return city_list
 
-    def load_world(self, country_names: list[str]) -> list[dict]:
+    def load_world(self, country_names: list[str] ) -> list[dict]:
         """Load multiple countries and return as list compatible with Core.build_sim()."""
         countries_data = []
+        if not country_names:
+            country_names = self.ne_data["countries"]["NAME"].tolist()
         for country_name in country_names:
             try:
                 country_data = self.load_country(country_name)

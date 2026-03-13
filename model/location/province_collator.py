@@ -55,4 +55,22 @@ class RegionStrategy(ResolveProvinces):
             else:
                 provinces[region]["geometry"] = provinces[region]["geometry"].union(row["geometry"])
         return provinces
+
+class DefaultProvinces(ResolveProvinces):
+    '''Uses default provinces for countries that have few or no regions.'''
+    def collate_provinces(self,
+                          base_provinces,
+                          city_assignments,
+                          min_cities) -> dict[int, dict]:
+        provinces: dict[int, dict] = {}
+        for _, row in base_provinces.iterrows():
+            base_id = int(row["base_id"])
+            province_name = row.get("name", f"Province_{base_id}")
+            provinces[base_id] = {
+                "name": province_name,
+                "geometry": row["geometry"],
+                "city_ids": city_assignments.get(base_id, []),
+                "province_ids": [base_id],
+            }
+        return provinces
     
