@@ -1,6 +1,6 @@
 '''Handles country object.'''
 
-from dataclasses import dataclass
+import networkx as nx
 
 from .country_properties import (CountryProperties,
                                               CountryParams)
@@ -14,6 +14,8 @@ class Country(CountryProperties):
         self.p = params
         self.cfg = cfg
         self.rng = rng
+
+        self.city_distances = self._build_city_distances()
 
         all_firms = [
             firm
@@ -41,3 +43,26 @@ class Country(CountryProperties):
     def tick(self):
         for province in self.p.provinces:
             province.tick()
+        self.market.clear_chain(city_distances=self.city_distances)
+
+    def _build_city_distances(self) -> dict[tuple[int, int], float]:
+        city_distances = {}
+        for province in self.p.provinces:
+            for city1 in province.cities:
+                for city2 in province.cities:
+                    if city1 == city2:
+                        continue
+                    pair = tuple(sorted((city1.p.id, city2.p.id)))
+                    if pair not in city_distances:
+                        dist = self.distance_function(city1, city2)
+                        city_distances[pair] = dist
+        return city_distances
+
+    def distance_function(self, city1, city2) -> float:
+        '''Calculate distance between two cities.'''
+        # Placeholder: use Euclidean distance based on city locations.
+        #TODO: Replace with networkx using NE road data.
+
+        loc1 = city1.location
+        loc2 = city2.location
+        return ((loc1.x - loc2.x) ** 2 + (loc1.y - loc2.y) ** 2) ** 0.5

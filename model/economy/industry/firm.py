@@ -1,5 +1,5 @@
 '''Firm object owned by cities.'''
-from dataclasses import dataclass, field
+
 from model.core.random import _sample_normal
 
 from model.economy.industry.firm_properties import (FirmParams,
@@ -9,11 +9,12 @@ from model.economy.industry.firm_properties import (FirmParams,
 from model.economy.industry.firm_types import GoodDemandItem, GoodDemandResult
 
 class Firm(FirmProperties):
-    def __init__(self, params: FirmParams, rng):
+    def __init__(self, params: FirmParams, rng, city_id: int):
         self.p = params
         self.state = FirmState()
 
         self.rng = rng
+        self.city_id = city_id
 
         self.state.market_capital = self.p.capital if self.p.capital is not None else 0.0
 
@@ -23,7 +24,7 @@ class Firm(FirmProperties):
         self.state.inv.setdefault(self.good, 0.0)
 
     @classmethod
-    def from_dict(cls, firm_data: dict, rng, country_policy: None = None) -> "Firm":
+    def from_dict(cls, firm_data: dict, rng, city_id: int) -> "Firm":
         '''Create a new firm instance from dictionary data.'''
         return cls(
             params=FirmParams(
@@ -35,9 +36,9 @@ class Firm(FirmProperties):
                 wage=firm_data.get("wage"),
                 input_mats=firm_data.get("input_mats"),
                 education_wanted=firm_data.get("education_wanted", 1.0),
-                country_policy=country_policy,
             ),
             rng=rng,
+            city_id=city_id,
         )
 
     def labour_demand(self, market_capital: float | None = None, market_wage: float | None = None) -> int:

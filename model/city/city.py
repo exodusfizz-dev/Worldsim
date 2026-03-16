@@ -16,6 +16,8 @@ class CityParams:
     name: str
     populations: list
     firms: list
+    location: object
+    id: int
 
 
 @dataclass
@@ -63,6 +65,8 @@ class City:
                 name=city_data["name"],
                 populations=populations,
                 firms=firms,
+                location=city_data["geometry"],
+                id=city_data["city_id"],
             ),
             rng=rng,
             cfg=cfg,
@@ -112,6 +116,15 @@ class City:
     @property
     def firms(self) -> list:
         return self.p.firms
+
+    @property
+    def location(self) -> object:
+        return self.p.location
+
+    @property
+    def id(self) -> int:
+        return self.p.id
+
 
     def tick(self) -> None:
         self.tick_groups()
@@ -193,6 +206,18 @@ class City:
             self.state.starving = True
         else:
             self.state.last_food_deficit = None
+    
+    def sell_to_firm(self, firm, item, amount, price) -> None:
+        available = self.state.inv.get(item, 0.0)
+        to_sell = min(available, amount)
+        if to_sell <= 0:
+            return
+
+        revenue = to_sell * price
+        self.state.inv[item] -= to_sell
+        firm.inv[item] = firm.inv.get(item, 0.0) + to_sell
+        self.state.treasury += revenue
+        firm.market_capital -= revenue
 
     def tick_groups(self):
         for group in self.p.populations:
