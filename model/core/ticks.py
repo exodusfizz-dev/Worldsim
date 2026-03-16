@@ -1,4 +1,4 @@
-import json
+
 from model.city import City
 from model.province import Province
 import numpy as np
@@ -37,14 +37,14 @@ class Core:
             for group in groups
         ]
 
-    def _build_firms(self, firms):
-        return [Firm.from_dict(firm_data, rng=self.rng) for firm_data in firms]
+    def _build_firms(self, firms, city_id: int):
+        return [Firm.from_dict(firm_data, rng=self.rng, city_id=city_id) for firm_data in firms]
 
     def _build_city(self, city_data):
 
         populations = self._build_population_groups(city_data["groups"])
 
-        firms = self._build_firms(city_data["firms"])
+        firms = self._build_firms(city_data["firms"], city_id=city_data["city_id"])
 
         return City.from_dict(city_data,
                               populations,
@@ -69,7 +69,7 @@ class Core:
             location_cfg=self.location_cfg
         )
 
-        countries_to_load = [] # If empty, loads all countries.
+        countries_to_load = ["United Kingdom"] # If empty, loads all countries.
         data = {"countries": loader.load_world(countries_to_load)}
 
         for country_data in data["countries"]:

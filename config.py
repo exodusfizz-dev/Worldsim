@@ -14,7 +14,7 @@ CONFIG = {
             {"enabled": False,
             },
         "map_display":
-            {"enabled": True,
+            {"enabled": False,
             },
         },
 

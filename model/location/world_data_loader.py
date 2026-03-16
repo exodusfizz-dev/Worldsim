@@ -77,9 +77,7 @@ class WorldDataLoader:
     def _build_province_output(
         self,
         provinces: dict[int, dict],
-        base_provinces: gpd.GeoDataFrame,
         cities: gpd.GeoDataFrame,
-        country_name: str,
     ) -> list[dict]:
         """Convert collated provinces based on base provinces into data for sim builder."""
         has_any_city = not cities.empty
@@ -137,9 +135,7 @@ class WorldDataLoader:
 
         return self._build_province_output(
             provinces=provinces,
-            base_provinces=base_provinces,
             cities=cities,
-            country_name=country_name,
         )
 
     def _load_cities_for_province(
@@ -155,6 +151,7 @@ class WorldDataLoader:
             city_name = city_row.get("NAME", f"City_{idx}")
             population = int(city_row.get("POP_MAX", 10000))
             geometry = city_row.geometry
+            city_id = int(city_row["city_id"])
 
             city_size_rank = idx / max(1, len(cities))
 
@@ -162,9 +159,8 @@ class WorldDataLoader:
                 "name": city_name,
                 "geometry": geometry,
                 "groups": self.population_gen.generate_for_city(city_name, population),
-                "firms": self.firm_gen.generate_for_city(
-                    city_name, population, city_size_rank
-                ),
+                "firms": self.firm_gen.generate_for_city(population, city_size_rank),
+                "city_id": city_id
             }
             city_list.append(city_data)
 

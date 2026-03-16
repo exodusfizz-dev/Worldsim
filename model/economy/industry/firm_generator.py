@@ -30,7 +30,6 @@ class FirmGenerator:
 
     def generate_for_city(
         self,
-        city_name: str,
         population: int,
         city_size_rank: float = 0.5,
     ) -> list[dict]:
