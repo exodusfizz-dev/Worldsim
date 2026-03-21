@@ -84,6 +84,8 @@ class PopulationGroupProperties:
 
     @property
     def employment_rate(self):
+        if self.size <= 0:
+            return 0.0
         return self.state.employed / self.size
 
 

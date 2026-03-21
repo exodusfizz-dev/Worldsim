@@ -6,8 +6,10 @@ from dataclasses import dataclass, field
 from model.city.city_data import CityData
 from model.economy import LabourMarket
 from model.economy.labour.labour_market import LabourClearResult
+from model.economy.trade.supply_chain_types import MarketSellOrder
 from model.migration import GroupMigrationEvent, Migration
 
+# TODO: Move all properties and dataclasses to a separate file for maintainability and clarity.
 
 @dataclass
 class CityParams:
@@ -16,6 +18,8 @@ class CityParams:
     name: str
     populations: list
     firms: list
+    location: object
+    id: int
 
 
 @dataclass
@@ -63,6 +67,8 @@ class City:
                 name=city_data["name"],
                 populations=populations,
                 firms=firms,
+                location=city_data["geometry"],
+                id=city_data["city_id"],
             ),
             rng=rng,
             cfg=cfg,
@@ -112,6 +118,15 @@ class City:
     @property
     def firms(self) -> list:
         return self.p.firms
+
+    @property
+    def location(self) -> object:
+        return self.p.location
+
+    @property
+    def id(self) -> int:
+        return self.p.id
+
 
     def tick(self) -> None:
         self.tick_groups()
@@ -164,8 +179,8 @@ class City:
             self.state.last_food_deficit = None
             return
 
-        market_cfg = self.cfg.get("market", {})
-        food_price = max(float(market_cfg.get("food_price", 1.0)), 0.0)
+        food_price = 5.0
+        # TODO: Start taking food price either from commodity supply chain or city consumer market.
         total_deficit = 0.0
 
         for group in self.p.populations:
@@ -195,6 +210,73 @@ class City:
         else:
             self.state.last_food_deficit = None
 
+    def sell_to_firm(self, firm, item, amount, price) -> None:
+        available = self.state.inv.get(item, 0.0)
+        to_sell = min(available, amount)
+        if to_sell <= 0:
+            return
+
+        revenue = to_sell * price
+        self.state.inv[item] -= to_sell
+        firm.inv[item] = firm.inv.get(item, 0.0) + to_sell
+        self.state.treasury += revenue
+        firm.market_capital -= revenue
+
     def tick_groups(self):
         for group in self.p.populations:
             group.tick()
+
+    def _ask_price(
+        self,
+        item: str,
+        amount: float,
+        market_signal: dict[str, float],
+        fill_ratio: float,
+        required_underask: float,
+    ) -> float:
+        """Adaptive ask quote for one good.
+
+        Cities lower asks under capital urgency, weak fills, or high inventory
+        pressure. They anchor around the market reference price when available.
+        """
+        top_bid = max(market_signal.get("top_bid", 0.0), 0.0)
+        top_ask = max(market_signal.get("top_ask", 0.0), 0.0)
+        agreed = max(market_signal.get("agreed_price", 0.0), 0.0)
+        reference = max(market_signal.get("reference_price", 0.0), 0.0)
+
+        base = reference or agreed or top_ask or top_bid or 5.0
+        spread = max(top_ask - top_bid, 0.0) if top_ask > 0 and top_bid > 0 else 0.0
+
+        bounded_fill = min(max(fill_ratio, 0.0), 1.0)
+        miss_penalty = 1.0 - bounded_fill
+        treasury = max(self.state.treasury, 0.0)
+        capital_urgency = 1.0 / (1.0 + treasury / 10000.0)
+        inventory_pressure = min(amount / (amount + 200.0), 1.0)
+
+        adjustment = 1.0 - (0.25 * miss_penalty) - (0.20 * capital_urgency) - (0.20 * inventory_pressure)
+        gap_adjustment = max(required_underask, 0.0) * 0.5
+        return max(base * adjustment + 0.20 * spread - gap_adjustment, 0.01)
+
+    def good_supply(
+        self,
+        market_signals: dict[str, dict[str, float]],
+        fill_ratios: dict[str, float],
+        price_feedback: dict[str, dict[str, float]],
+    ) -> list[MarketSellOrder]:
+        """Return city asks for currently available inventory."""
+        orders: list[MarketSellOrder] = []
+        for item, amount in self.state.inv.items():
+            if amount <= 0:
+                continue
+            signal = market_signals.get(item, {})
+            fill_ratio = fill_ratios.get(item, 1.0)
+            feedback = price_feedback.get(item, {})
+            required_underask = feedback.get("required_underask", 0.0)
+            price = self._ask_price(item, amount, signal, fill_ratio, required_underask)
+            orders.append(MarketSellOrder(
+                city=self,
+                item=item,
+                amount=amount,
+                price=price,
+            ))
+        return orders

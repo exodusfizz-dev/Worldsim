@@ -10,7 +10,8 @@ def report(week, core, spr) -> None:
     :param core: core object - the whole sim
     '''
     print(f"------\n------\nWeek {week}: ")
-    for country in core.countries:
+    countries_to_report = [country for country in core.countries if country.name in core.country_cfg.get("report_countries", ["United Kingdom", "China"])]
+    for country in countries_to_report:
         print(f"Country: {country.name}")
         if spr:
             report_provinces(country, week)
@@ -22,6 +23,8 @@ def report_provinces(country, week):
     :param week: week number (int)
     :param country: country object
     '''
+
+    # TODO: Refactor to be more modular. Especially make migrations printing optional, and add more for trade and economy.
 
     for province in country.provinces:
 
@@ -58,7 +61,7 @@ def report_provinces(country, week):
                 print(f"Food deficit: {city.last_food_deficit:.2f} Kgs")
             else:
                 print("No food deficit")
-            print(f"City treasury: {city.state.treasury}")
+            print(f"City treasury: {city.state.treasury:.2f}")
 
             for migration in city.migrations: # Prints migration data
 

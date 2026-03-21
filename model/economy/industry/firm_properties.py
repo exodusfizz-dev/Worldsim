@@ -10,14 +10,10 @@ class FirmParams:
     good: str
     education_wanted: float = 1.0
     input_mats: list | None = field(default_factory=list)
+    capital: float | None = 0.0
+    wage: float | None = 0.0
+    desired_stock_weeks: float = 5.0
 
-    # This is a placeholder that will allow labour_market to work before education is implemented.
-
-    # transitional: optional in input_data.json
-    capital: float | None = None
-    wage: float | None = None
-    required_skill: str | None = None
-    country_policy: dict | None = None
 
 @dataclass
 class FirmState:
@@ -38,7 +34,12 @@ class FirmProperties:
 
     @property
     def total_productivity(self):
-        return self.state.total_productivity
+        return max(
+            min(self.p.productivity * self.employed,
+                self.p.production_capacity,
+                self.able_to_produce),
+            0,
+        )
     @total_productivity.setter
     def total_productivity(self, value):
         self.state.total_productivity = value

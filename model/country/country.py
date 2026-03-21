@@ -1,6 +1,6 @@
 '''Handles country object.'''
 
-from dataclasses import dataclass
+import networkx as nx
 
 from .country_properties import (CountryProperties,
                                               CountryParams)
@@ -15,6 +15,8 @@ class Country(CountryProperties):
         self.cfg = cfg
         self.rng = rng
 
+        self.city_distances = self._build_city_distances()
+
         all_firms = [
             firm
             for province in self.provinces
@@ -26,7 +28,7 @@ class Country(CountryProperties):
             for province in self.provinces
             for city in province.cities
         ]
-        self.market = SupplyChain.build_from(rng=rng, firms=all_firms, cities=all_cities)
+        self.market = SupplyChain.build_from(rng=rng, firms=all_firms, cities=all_cities, city_distances=self.city_distances)
 
     @classmethod
     def from_dict(cls, country_data, provinces, rng, cfg) -> "Country":
@@ -41,3 +43,27 @@ class Country(CountryProperties):
     def tick(self):
         for province in self.p.provinces:
             province.tick()
+        self.market.tick()
+
+    def _build_city_distances(self) -> dict[tuple[int, int], float]:
+        city_distances = {}
+        for province in self.p.provinces:
+            for city1 in province.cities:
+                for city2 in province.cities:
+                    if city1 == city2:
+                        continue
+                    pair = tuple(sorted((city1.p.id, city2.p.id)))
+                    if pair not in city_distances:
+                        dist = self.calc_distances(city1, city2)
+                        city_distances[pair] = dist
+        return city_distances
+
+    def calc_distances(self, city1, city2) -> float:
+        '''Calculate distance between two cities.'''
+        # Placeholder: use Euclidean distance based on city locations.
+        #TODO: Replace with networkx using NE road data.
+        # Will need a graph of cities and roads in world_loader.py.
+
+        loc1 = city1.location
+        loc2 = city2.location
+        return ((loc1.x - loc2.x) ** 2 + (loc1.y - loc2.y) ** 2) ** 0.5

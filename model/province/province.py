@@ -1,6 +1,5 @@
 """Province model and intercity migration orchestration."""
 
-from dataclasses import dataclass, field
 from model.migration import Migration
 from model.province.province_properties import (ProvinceParams,
                                                 ProvinceState,
@@ -30,6 +29,7 @@ class Province(ProvinceProperties):
                 name=province_data["name"],
                 area=province_data["area"],
                 cities=cities,
+                geometry=province_data["geometry"],
             ),
             cfg=cfg,
             rng=rng,

@@ -1,14 +1,15 @@
-import json
+
 from model.city import City
 from model.province import Province
 import numpy as np
 from model.economy import Firm
 from model.population import PopulationGroup
 from model.country import Country
+from model.location.world_data_loader import WorldDataLoader
 
 
 class Core:
-    def __init__(self, seed_cfg, city_cfg, province_cfg, country_cfg):
+    def __init__(self, seed_cfg, city_cfg, province_cfg, country_cfg, location_cfg):
 
         if seed_cfg['use']:
             self.rng = np.random.default_rng(seed_cfg['seed'])
@@ -18,12 +19,16 @@ class Core:
         self.city_cfg = city_cfg
         self.province_cfg = province_cfg
         self.country_cfg = country_cfg
+        self.location_cfg = location_cfg
 
         self.countries = []
 
     def tick(self):
         for country in self.countries:
             country.tick()
+
+# TODO: Move all build functions to a separate builder class for clarity and maintainability.
+
 
     def _build_population_groups(self, groups):
         return [
@@ -32,14 +37,14 @@ class Core:
             for group in groups
         ]
 
-    def _build_firms(self, firms):
-        return [Firm.from_dict(firm_data, rng=self.rng) for firm_data in firms]
+    def _build_firms(self, firms, city_id: int):
+        return [Firm.from_dict(firm_data, rng=self.rng, city_id=city_id) for firm_data in firms]
 
     def _build_city(self, city_data):
 
         populations = self._build_population_groups(city_data["groups"])
 
-        firms = self._build_firms(city_data["firms"])
+        firms = self._build_firms(city_data["firms"], city_id=city_data["city_id"])
 
         return City.from_dict(city_data,
                               populations,
@@ -55,8 +60,17 @@ class Core:
         return [self._build_province(province_data) for province_data in data["provinces"]]
 
     def build_sim(self):
-        with open("input_data.json") as f:
-            data = json.load(f)
+        """Build simulation from Natural Earth data."""
+        loader = WorldDataLoader(
+            rng=self.rng,
+            city_cfg=self.city_cfg,
+            province_cfg=self.province_cfg,
+            country_cfg=self.country_cfg,
+            location_cfg=self.location_cfg
+        )
+
+        countries_to_load = ["United Kingdom"] # If empty, loads all countries.
+        data = {"countries": loader.load_world(countries_to_load)}
 
         for country_data in data["countries"]:
             provinces = self.build_provinces(data=country_data)
@@ -69,5 +83,3 @@ class Core:
                                             rng=self.rng)
 
             self.countries.append(country_obj)
-
-

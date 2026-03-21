@@ -2,3 +2,6 @@
 __pycache__/
 .continue
 .vscode
+data/
+.DS_Store
+agents/
