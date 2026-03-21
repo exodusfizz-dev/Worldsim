@@ -27,7 +27,7 @@ class Core:
         for country in self.countries:
             country.tick()
 
-
+# TODO: Move all build functions to a separate builder class for clarity and maintainability.
 
 
     def _build_population_groups(self, groups):
