@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, TypedDict
 if TYPE_CHECKING:
     from model.city.city import City
 
-# TODO: Validate the relevancy of this whole file.
 
 class PopulationSummary(TypedDict):
     group: int
@@ -53,7 +52,6 @@ class CityData:
         '''
         Updates data that is dependent on variables the city object handles
         '''
-        # TODO: Refactor these totals to be calculated as properties rather than stored as state.
         c = self.city
         c.birth_total = sum(group.births for group in c.populations)
         c.death_total = sum(group.deaths for group in c.populations)

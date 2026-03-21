@@ -18,9 +18,6 @@ def main():
     Runs whole simulation. Also handles output by calling report function
     '''
     # Core initialises whole simulation.
-    # TODO: Check entire repo for dead code, especially in city_data.py and protocols.py (to be replaced by networkx distances).
-    # TODO: Move all place modules (province, country, city) to a larger encompassing module.
-    # TODO: Assert consistecy of typehints, documentation, and naming conventions across the repo for maintainability and readability.
     core = Core(
         seed_cfg=CONFIG.get("seed"),
         city_cfg=CONFIG.get("city"),

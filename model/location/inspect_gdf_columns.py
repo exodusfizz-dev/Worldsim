@@ -5,8 +5,6 @@ Run before the simulation to verify available fields:
     python3 model/location/inspect_gdf_columns.py --only cities
 """
 
-# TODO: consider removing this file after inspection, as it was primarily for development and debugging purposes that are done now.
-
 import argparse
 from pathlib import Path
 
