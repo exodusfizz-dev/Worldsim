@@ -24,6 +24,8 @@ def report_provinces(country, week):
     :param country: country object
     '''
 
+    # TODO: Refactor to be more modular. Especially make migrations printing optional, and add more for trade and economy.
+
     for province in country.provinces:
 
         print(f"------\nProvince: {province.name}")

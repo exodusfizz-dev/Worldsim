@@ -24,6 +24,8 @@ class LocationMetadata:
 
 class WorldDataLoader:
     """Load Natural Earth data and procedurally generate world simulation."""
+    # TODO: Split class for clarity and maintainability, e.g. separate out province collators and city assigners.
+    # TODO: Check whether loading could be more efficient, especially for whole world.
 
     def __init__(self, rng, city_cfg: dict, province_cfg: dict, country_cfg: dict, location_cfg: dict):
         """

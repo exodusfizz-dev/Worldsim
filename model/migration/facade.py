@@ -12,6 +12,8 @@ from model.migration.types import GroupMigrationEvent
 if TYPE_CHECKING:
     from model.city.city import City
 
+# TODO: remove all reference to 'public API'. Does this need to be a 'facade'?
+
 
 class Migration:
     """Migration engine supporting intracity and intercity group transfers."""
