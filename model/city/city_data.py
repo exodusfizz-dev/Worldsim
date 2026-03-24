@@ -52,6 +52,7 @@ class CityData:
         '''
         Updates data that is dependent on variables the city object handles
         '''
+        # TODO: replace with properties for city class, except where relevant.
         c = self.city
         c.birth_total = sum(group.births for group in c.populations)
         c.death_total = sum(group.deaths for group in c.populations)

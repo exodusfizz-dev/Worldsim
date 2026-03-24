@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
+# TODO: overhaul, maybe using protocols, to facilitate easy graph production from many different groups of data.
+
 def graph_total_pop(city):
     '''
     Test function to graph total population of a city over time.

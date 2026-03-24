@@ -2,39 +2,19 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 from model.city.city_data import CityData
 from model.economy import LabourMarket
-from model.economy.labour.labour_market import LabourClearResult
-from model.migration import GroupMigrationEvent, Migration
+
+from .city_properties import (CityParams,
+                              CityState,
+                              CityProperties)
 
 
-@dataclass
-class CityParams:
-    """Immutable construction parameters for a city."""
 
-    name: str
-    populations: list
-    firms: list
-    location: object
-    id: int
-
-
-@dataclass
-class CityState:
-    """Mutable city state updated during each simulation tick."""
-
-    employed: int = 0
-    migrations: list[GroupMigrationEvent] = field(default_factory=list)
-    last_food_deficit: float | None = None
-    inv: dict[str, float] = field(default_factory=dict)
-    treasury: float = 0.0
-    labour_result: LabourClearResult | None = None
-    starving: bool = False
-
-
-class City:
+class City(CityProperties):
     """City object owned by provinces."""
+
+# TODO: move from old population group list of objects to array handled by city_population_manager.py
 
     def __init__(self, cfg: dict, rng, params: CityParams) -> None:
         self.p = params
@@ -44,10 +24,8 @@ class City:
         self.state = CityState()
 
         intergroup_rate = self.cfg.get("migration", {}).get("intergroup_rate", 0.0005)
-        self.migration = Migration.for_intergroup(
-            rng=self.rng,
-            intergroup_rate=intergroup_rate,
-        )
+        del intergroup_rate
+        self.migration = None
 
         self.labour_market = LabourMarket(self.rng, country_policy=None)
 
@@ -72,58 +50,6 @@ class City:
             cfg=cfg,
         )
 
-    @property
-    def employed(self) -> int:
-        return self.state.employed
-
-    @property
-    def migrations(self) -> list[GroupMigrationEvent]:
-        return self.state.migrations
-
-    @property
-    def last_food_deficit(self) -> float | None:
-        return self.state.last_food_deficit
-
-    @property
-    def inv(self) -> dict[str, float]:
-        return self.state.inv
-
-    @property
-    def migration_attractiveness(self) -> float:
-        if self.state.starving:
-            return 0.0
-        return sum(group.migration_attractiveness for group in self.p.populations)
-
-
-    @property
-    def total_population(self) -> float:
-        """Canonical city population used by migration and reporting."""
-        return sum(group.size for group in self.populations)
-
-    @property
-    def group_count(self) -> int:
-        """Number of population groups currently in the city."""
-        return len(self.p.populations)
-
-    @property
-    def name(self) -> str:
-        return self.p.name
-
-    @property
-    def populations(self) -> list:
-        return self.p.populations
-
-    @property
-    def firms(self) -> list:
-        return self.p.firms
-
-    @property
-    def location(self) -> object:
-        return self.p.location
-
-    @property
-    def id(self) -> int:
-        return self.p.id
 
 
     def tick(self) -> None:
@@ -154,7 +80,9 @@ class City:
         """Run migration between groups inside this city."""
         self.state.migrations = []
         if self.cfg.get("migration", {}).get("enabled", True):
-            self.state.migrations.extend(self.migration.migrate_within_city(self))
+            self.state.migrations.extend(self.migration.migrate_within_city(self)
+                                         if self.migration
+                                         else [])
 
     def settle_labour_tax(self) -> None:
         """Collect labour income tax from groups."""
@@ -206,7 +134,7 @@ class City:
             self.state.starving = True
         else:
             self.state.last_food_deficit = None
-    
+
     def sell_to_firm(self, firm, item, amount, price) -> None:
         available = self.state.inv.get(item, 0.0)
         to_sell = min(available, amount)

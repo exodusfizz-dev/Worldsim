@@ -4,6 +4,10 @@ Procedural world generation from Natural Earth data.
 Loads real geographic data based on actual city/province/country attributes.
 """
 
+# TODO: Look at efficiency - loading whole world is slow
+# TODO: remove population data as part of migration to population arrays generated in-cities.
+# Consider removal of firm data also, for efficiency.
+
 from dataclasses import dataclass
 import geopandas as gpd
 from .load_maps import load_natural_earth_data
