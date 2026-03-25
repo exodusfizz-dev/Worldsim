@@ -1,5 +1,7 @@
 """Simulation-wide invariant checks used by tests and debugging."""
 
+import numpy as np
+
 
 def collect_invariant_errors(core):
     errors = []
@@ -11,17 +13,19 @@ def collect_invariant_errors(core):
                 for good, amount in city.inv.items():
                     if amount < 0:
                         errors.append(f"{city.name}: negative inventory for {good}")
-                for group in city.populations:
-                    if group.size < 0:
-                        errors.append(f"{city.name}: negative group size")
-                    if group.sick < 0:
-                        errors.append(f"{city.name}: negative sick count")
-                    if group.money < 0:
-                        errors.append(f"{city.name}: negative group money")
-                    if group.employed < 0:
-                        errors.append(f"{city.name}: negative employed count")
-                    if group.employed > group.size:
-                        errors.append(f"{city.name}: employed exceeds group size")
+
+                groups = city.population.groups
+                if np.any(groups["size"] < 0):
+                    errors.append(f"{city.name}: negative group size")
+                if np.any(groups["sick"] < 0):
+                    errors.append(f"{city.name}: negative sick count")
+                if np.any(groups["money"] < 0):
+                    errors.append(f"{city.name}: negative group money")
+                if np.any(groups["employed"] < 0):
+                    errors.append(f"{city.name}: negative employed count")
+                if np.any(groups["employed"] > groups["size"]):
+                    errors.append(f"{city.name}: employed exceeds group size")
+
                 for firm in city.firms:
                     good_inventory = firm.inv.get(firm.good, 0.0)
                     if good_inventory < 0:

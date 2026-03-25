@@ -1,55 +1,51 @@
-'''
-Report function is part of the visualisation module. It print data from the model, called in main.py
-'''
+"""Reporting helpers for console output."""
+
 
 def report(week, core, spr) -> None:
-    '''
-    Outputs data for main. Reporting on provinces can be enabled or disabled in config.
-    
-    :param week: week number (int)
-    :param core: core object - the whole sim
-    '''
+    """Output simulation data for the current week."""
     print(f"------\n------\nWeek {week}: ")
-    countries_to_report = [country for country in core.countries if country.name in core.country_cfg.get("report_countries", ["United Kingdom", "China"])]
+    countries_to_report = [
+        country
+        for country in core.countries
+        if country.name in core.country_cfg.get("report_countries", ["United Kingdom", "China"])
+    ]
     for country in countries_to_report:
         print(f"Country: {country.name}")
         if spr:
             report_provinces(country, week)
 
+
 def report_provinces(country, week):
-    '''
-    Outputs data for main. Can be disabled in config (called by the main report)
-    
-    :param week: week number (int)
-    :param country: country object
-    '''
+    """Output province + city data."""
 
     for province in country.provinces:
-
         print(f"------\nProvince: {province.name}")
         for city in province.cities:
+            snapshot = city.city_data.data[week - 1]
+            city_data = snapshot["city_data"]
 
-            print(f"{city.name}: \nPopulation = {int(city.total_population)}"\
-                f"\nProductivity = {city.productivity:.2f}, "\
-                f"Births = {city.birth_total}, "\
-                f"Deaths = {city.death_total}"
-                )
+            print(
+                f"{city.name}: \nPopulation = {int(city_data['population'])}"
+                f"\nProductivity = {city_data['productivity']:.2f}, "
+                f"Births = {city_data['births']}, "
+                f"Deaths = {city_data['deaths']}"
+            )
 
-            for g in city.city_data.data[week-1]['population_data']:
+            for g in snapshot["population_data"]:
                 print(
-                    f"Group {g['group']}: "
+                    f"Group {g['group']} (type {g['group_type']}): "
                     f"size = {int(g['size'])}, "
                     f"healthcare = {g['healthcare']:.3f}, "
                     f"employment_rate = {g['employment_rate']:.3f}, "
                     f"sick rate = {g['sick_rate']:.3f}"
-                    )
+                )
 
-            for f in city.city_data.data[week-1]['firm_data']:
+            for f in snapshot["firm_data"]:
                 print(
-                    f"Ownership: {f['ownership']}, "                    
+                    f"Ownership: {f['ownership']}, "
                     f"Good: {f['good']}, "
                     f"Employed = {f['employed']}, "
-                    f"Total productivity = {f['total_productivity']:.0f},"         
+                    f"Total productivity = {f['total_productivity']:.0f},"
                 )
 
             for good, amount in city.inv.items():
@@ -61,8 +57,7 @@ def report_provinces(country, week):
                 print("No food deficit")
             print(f"City treasury: {city.state.treasury:.2f}")
 
-            for migration in city.migrations: # Prints migration data
-
+            for migration in city.migrations:
                 from_group = migration.source_group_index + 1
                 to_group = migration.target_group_index + 1
                 amount = migration.amount

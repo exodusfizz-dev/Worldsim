@@ -4,28 +4,27 @@ from __future__ import annotations
 
 from model.city.city_data import CityData
 from model.economy import LabourMarket
+from model.migration import Migration
 
-from .city_properties import (CityParams,
-                              CityState,
-                              CityProperties)
-
+from .city_properties import CityParams, CityState, CityProperties
 
 
 class City(CityProperties):
     """City object owned by provinces."""
 
-# TODO: move from old population group list of objects to array handled by city_population_manager.py
-
     def __init__(self, cfg: dict, rng, params: CityParams) -> None:
         self.p = params
+        self.population = params.population
         self.rng = rng
         self.cfg = cfg
 
         self.state = CityState()
 
         intergroup_rate = self.cfg.get("migration", {}).get("intergroup_rate", 0.0005)
-        del intergroup_rate
-        self.migration = None
+        self.migration = Migration.for_intergroup(
+            rng=self.rng,
+            intergroup_rate=intergroup_rate,
+        )
 
         self.labour_market = LabourMarket(self.rng, country_policy=None)
 
@@ -37,11 +36,11 @@ class City(CityProperties):
         self.city_data = CityData(self)
 
     @classmethod
-    def from_dict(cls, city_data: dict, populations, firms, rng, cfg) -> "City":
+    def from_dict(cls, city_data: dict, population, firms, rng, cfg) -> "City":
         return cls(
             params=CityParams(
                 name=city_data["name"],
-                populations=populations,
+                population=population,
                 firms=firms,
                 location=city_data["geometry"],
                 id=city_data["city_id"],
@@ -50,13 +49,11 @@ class City(CityProperties):
             cfg=cfg,
         )
 
-
-
     def tick(self) -> None:
-        self.tick_groups()
+        self.population.tick()
 
         self.state.labour_result = self.labour_market.clear_market(
-            populations=self.p.populations,
+            population=self.population,
             firms=self.p.firms,
         )
         self.state.employed = self.state.labour_result.total_employed
@@ -73,16 +70,8 @@ class City(CityProperties):
                 firm.market_capital += transfer * (1 / firm.p.productivity) * 30
 
         self.consume_food()
-        self.run_migrations()
         self.city_data.update_city_data()
 
-    def run_migrations(self) -> None:
-        """Run migration between groups inside this city."""
-        self.state.migrations = []
-        if self.cfg.get("migration", {}).get("enabled", True):
-            self.state.migrations.extend(self.migration.migrate_within_city(self)
-                                         if self.migration
-                                         else [])
 
     def settle_labour_tax(self) -> None:
         """Collect labour income tax from groups."""
@@ -90,50 +79,31 @@ class City(CityProperties):
             return
 
         labour_tax_rate = 0.2
-        if labour_tax_rate <= 0:
-            return
-
-        for group, income in zip(self.p.populations, self.state.labour_result.group_income):
-            tax = max(income, 0.0) * labour_tax_rate
-            paid = min(group.money, tax)
-            group.money -= paid
-            self.state.treasury += paid
+        self.state.treasury += self.population.apply_labour_result(
+            labour_result=self.state.labour_result,
+            labour_tax_rate=labour_tax_rate,
+        )
 
     def consume_food(self) -> None:
         """Groups buy and consume food from city inventory."""
-        if not self.p.populations:
+        if self.population.group_count <= 0:
             self.state.last_food_deficit = None
+            self.state.starving = False
             return
 
-        food_price = 5.0 # Placeholder pre market
-        total_deficit = 0.0
-
-        for group in self.p.populations:
-            needed = group.compute_food_consumption()
-            available = self.state.inv["food"]
-            if available <= 0:
-                purchased = 0.0
-            elif food_price <= 0:
-                purchased = min(needed, available)
-            else:
-                affordable = group.money / food_price
-                purchased = min(needed, available, affordable)
-
-            if food_price > 0 and purchased > 0:
-                spent = purchased * food_price
-                group.money = max(group.money - spent, 0.0)
-            self.state.inv["food"] -= purchased
-
-            deficit = max(needed - purchased, 0.0)
-            total_deficit += deficit
-            if deficit > 0:
-                group.starve(food_deficit=deficit)
+        food_price = 5.0
+        consumed, total_deficit = self.population.apply_food_allocation(
+            available_food=float(self.state.inv.get("food", 0.0)),
+            food_price=food_price,
+        )
+        self.state.inv["food"] = max(float(self.state.inv.get("food", 0.0)) - consumed, 0.0)
 
         if total_deficit > 0:
             self.state.last_food_deficit = total_deficit
             self.state.starving = True
         else:
             self.state.last_food_deficit = None
+            self.state.starving = False
 
     def sell_to_firm(self, firm, item, amount, price) -> None:
         available = self.state.inv.get(item, 0.0)
@@ -146,7 +116,3 @@ class City(CityProperties):
         firm.inv[item] = firm.inv.get(item, 0.0) + to_sell
         self.state.treasury += revenue
         firm.market_capital -= revenue
-
-    def tick_groups(self):
-        for group in self.p.populations:
-            group.tick()

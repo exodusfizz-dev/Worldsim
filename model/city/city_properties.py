@@ -1,8 +1,7 @@
 from dataclasses import dataclass, field
 
-from migration import GroupMigrationEvent
+from model.migration import GroupMigrationEvent
 from model.economy.labour.labour_market import LabourClearResult
-
 
 
 @dataclass
@@ -10,7 +9,7 @@ class CityParams:
     """Immutable construction parameters for a city."""
 
     name: str
-    populations: list
+    population: object
     firms: list
     location: object
     id: int
@@ -30,7 +29,8 @@ class CityState:
 
 
 class CityProperties:
-    '''Property handler for city class.'''
+    """Property handler for city class."""
+
     @property
     def employed(self) -> int:
         return self.state.employed
@@ -51,26 +51,21 @@ class CityProperties:
     def migration_attractiveness(self) -> float:
         if self.state.starving:
             return 0.0
-        return sum(group.migration_attractiveness for group in self.p.populations)
-
+        return self.population.migration_attractiveness
 
     @property
-    def total_population(self) -> float:
+    def total_population(self) -> int:
         """Canonical city population used by migration and reporting."""
-        return sum(group.size for group in self.populations)
+        return self.population.total_population
 
     @property
     def group_count(self) -> int:
         """Number of population groups currently in the city."""
-        return len(self.p.populations)
+        return self.population.group_count
 
     @property
     def name(self) -> str:
         return self.p.name
-
-    @property
-    def populations(self) -> list:
-        return self.p.populations
 
     @property
     def firms(self) -> list:

@@ -1,6 +1,4 @@
-'''
-City data module contains class CityData, which supplies various data-related functions
-'''
+"""City data capture and summaries."""
 
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, TypedDict
@@ -11,6 +9,7 @@ if TYPE_CHECKING:
 
 class PopulationSummary(TypedDict):
     group: int
+    group_type: int
     size: int
     healthcare: float
     last_births: int
@@ -42,104 +41,44 @@ class CitySnapshot(TypedDict):
 
 @dataclass
 class CityData:
-    '''
-    City data handles data for cities by updating, creating summaries and storing it
-    '''
+    """City data handles per-tick summaries and storage."""
+
     city: "City"
     data: list[CitySnapshot] = field(default_factory=list)
 
     def update_city_data(self) -> None:
-        '''
-        Updates data that is dependent on variables the city object handles
-        '''
-        # TODO: replace with properties for city class, except where relevant.
-        c = self.city
-        c.birth_total = sum(group.births for group in c.populations)
-        c.death_total = sum(group.deaths for group in c.populations)
-
-        # People of fit age and health to work as decimal.
-        if c.populations:
-            c.employable = sum(group.employable for group in c.populations) / len(c.populations)
-        else:
-            c.employable = 0.0
-
-        c.productivity = sum(firm.total_productivity for firm in c.firms)
-
         self.data.append(self.store_data())
 
     def sum_population_data(self) -> list[PopulationSummary]:
-
-        '''
-        Helper function for store_data
-        Returns a list dictionary summary of all population groups.
-        '''
-
-        c = self.city
-        summary: list[PopulationSummary] = []
-
-        for i, group in enumerate(c.populations, 1):
-            summary.append ({
-                'group': i,
-                'size': group.size,
-                'healthcare': group.healthcare,
-                'last_births': group.births,
-                'last_deaths': group.deaths,
-                'employment_rate': group.employment_rate,
-                'sick_rate': group.sick_rate
-            })
-
-        return summary
+        return self.city.population.summary_rows()
 
     def sum_firm_data(self) -> list[FirmSummary]:
-
-        '''
-        Helper function for store_data
-        Returns list dictionary summary of all firms.
-        '''
-
-        c = self.city
         summary: list[FirmSummary] = []
-
-        for firm in c.firms:
-            summary.append ({
-                'ownership': firm.ownership,
-                'good': firm.good,
-                'employed': firm.employed,
-                'total_productivity': firm.total_productivity
-            })
+        for firm in self.city.firms:
+            summary.append(
+                {
+                    "ownership": firm.ownership,
+                    "good": firm.good,
+                    "employed": firm.employed,
+                    "total_productivity": firm.total_productivity,
+                }
+            )
 
         return summary
 
     def sum_city_data(self) -> CitySummary:
-
-        '''
-        Helper function for store_data.
-        Returns a dictionary.
-        '''
-        c = self.city
-
-        summary = {
-            'population': c.total_population,
-            'births': c.birth_total,
-            'deaths': c.death_total,
-            'employable': c.employable,
-            'productivity': c.productivity,
+        totals = self.city.population.totals()
+        return {
+            "population": int(totals["population"]),
+            "births": int(totals["births"]),
+            "deaths": int(totals["deaths"]),
+            "employable": float(totals["employable"]),
+            "productivity": float(sum(firm.total_productivity for firm in self.city.firms)),
         }
-
-        return summary
 
     def store_data(self) -> CitySnapshot:
-        full_summary = ({
-            'city_data':
-                self.sum_city_data(),
-
-            'population_data':
-                self.sum_population_data(),
-
-            'firm_data':
-                self.sum_firm_data()
-
+        return {
+            "city_data": self.sum_city_data(),
+            "population_data": self.sum_population_data(),
+            "firm_data": self.sum_firm_data(),
         }
-        )
-
-        return full_summary

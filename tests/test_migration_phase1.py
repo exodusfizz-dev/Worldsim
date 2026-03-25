@@ -2,28 +2,26 @@ import unittest
 from dataclasses import dataclass
 import random
 
+import numpy as np
+
+from model.city import CityPopulation
+from model.city.population_generator import PopulationSeed
 from model.migration import Migration
 from model.province.province import Province, ProvinceParams
 
 
 @dataclass
-class StubGroup:
-    size: int
-    migration_attractiveness: float
-
-
-@dataclass
 class StubCity:
     name: str
-    populations: list[StubGroup]
-    migration_attractiveness: float
+    population: CityPopulation
+
+    @property
+    def migration_attractiveness(self) -> float:
+        return self.population.migration_attractiveness
 
     @property
     def total_population(self) -> int:
-        return sum(group.size for group in self.populations)
-
-    def refresh_totals(self) -> None:
-        return
+        return self.population.total_population
 
 
 class ZeroDistance:
@@ -46,25 +44,37 @@ class RngAdapter:
         return successes
 
 
+def make_population(sizes: list[int], healthcare: list[float]) -> CityPopulation:
+    n = len(sizes)
+    seed = PopulationSeed(
+        group_type=np.arange(n, dtype=np.int8) % 3,
+        size=np.asarray(sizes, dtype=np.int64),
+        base_healthcare=np.asarray(healthcare, dtype=np.float64),
+        healthcare_capacity=np.maximum(100, np.asarray(sizes, dtype=np.int64)),
+        education=np.ones(n, dtype=np.float64),
+        money=np.zeros(n, dtype=np.float64),
+    )
+    pop = CityPopulation.from_seed(seed=seed, rng=np.random.default_rng(123))
+    pop.groups["healthcare"] = np.asarray(healthcare, dtype=np.float64)
+    return pop
+
+
 class MigrationPhase1Tests(unittest.TestCase):
     def make_cities(self) -> tuple[StubCity, StubCity]:
         source = StubCity(
             name="A",
-            populations=[StubGroup(120, 0.2), StubGroup(80, 0.25), StubGroup(50, 0.3)],
-            migration_attractiveness=0.25,
+            population=make_population([120, 80, 50], [0.2, 0.25, 0.3]),
         )
         target = StubCity(
             name="B",
-            populations=[StubGroup(100, 0.7), StubGroup(90, 0.8)],
-            migration_attractiveness=0.75,
+            population=make_population([100, 90], [0.7, 0.8]),
         )
         return source, target
 
     def test_intergroup_migration_conserves_population_and_uses_ints(self):
         city = StubCity(
             name="A",
-            populations=[StubGroup(100, 0.1), StubGroup(70, 0.4), StubGroup(40, 0.7)],
-            migration_attractiveness=0.0,
+            population=make_population([100, 70, 40], [0.1, 0.4, 0.7]),
         )
         migration = Migration.for_intergroup(
             rng=RngAdapter(42),
@@ -77,7 +87,7 @@ class MigrationPhase1Tests(unittest.TestCase):
 
         self.assertEqual(before, after)
         self.assertTrue(all(isinstance(event.amount, int) for event in events))
-        self.assertTrue(all(group.size >= 0 for group in city.populations))
+        self.assertTrue(np.all(city.population.groups["size"] >= 0))
 
     def test_intercity_migration_conserves_total_and_uses_ints(self):
         source, target = self.make_cities()
@@ -92,7 +102,8 @@ class MigrationPhase1Tests(unittest.TestCase):
 
         self.assertEqual(before_total, after_total)
         self.assertTrue(all(isinstance(event.amount, int) for event in events))
-        self.assertTrue(all(group.size >= 0 for group in source.populations + target.populations))
+        self.assertTrue(np.all(source.population.groups["size"] >= 0))
+        self.assertTrue(np.all(target.population.groups["size"] >= 0))
 
     def test_fallback_split_used_when_target_has_fewer_groups(self):
         source, target = self.make_cities()
@@ -102,13 +113,15 @@ class MigrationPhase1Tests(unittest.TestCase):
         )
 
         events = migration.migrate_between_cities(source, target)
-        self.assertTrue(any(event.source_group_index >= len(target.populations) for event in events))
+        self.assertTrue(
+            any(event.source_group_index >= target.population.group_count for event in events)
+        )
 
     def test_province_uses_intercity_rate_from_config(self):
         province = Province(
             cfg={"migration": {"enabled": True, "intercity_rate": 0.123}},
             rng=RngAdapter(1),
-            params=ProvinceParams(name="P", area=100, cities=[]),
+            params=ProvinceParams(name="P", area=100, cities=[], geometry=None),
         )
         self.assertAlmostEqual(province.migration.intercity_rate, 0.123)
 

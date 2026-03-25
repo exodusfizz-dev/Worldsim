@@ -3,7 +3,7 @@
 from typing import TYPE_CHECKING, Sequence
 
 from model.migration.allocation import MigrationAllocator
-from model.migration.engines import IntercityMigrationEngine, IntergroupMigrationEngine
+from model.migration.engines import IntercityMigrationEngine
 from model.migration.options import MigrationOptions
 from model.protocols import DistanceProvider, NeutralDistanceProvider
 from model.migration.selectors import WeightedTargetSelector
@@ -35,10 +35,7 @@ class Migration:
             distance_provider=self.distance_provider,
         )
         self.allocator = MigrationAllocator(rng=self.rng)
-        self.intergroup_engine = IntergroupMigrationEngine(
-            selector=self.selector,
-            allocator=self.allocator,
-        )
+
         self.intercity_engine = IntercityMigrationEngine(
             selector=self.selector,
             allocator=self.allocator,
@@ -84,12 +81,6 @@ class Migration:
         '''Uses the intercity engine's selector to choose a target city for migration.'''
         return self.intercity_engine.choose_target_city(source_city=source_city, candidates=candidates)
 
-    def migrate_within_city(self, city: "City") -> list[GroupMigrationEvent]:
-        '''Uses the intergroup engine to move migrants between groups inside one city.'''
-        return self.intergroup_engine.migrate_within_city(
-            city=city,
-            intergroup_rate=self.intergroup_rate,
-        )
 
     def migrate_between_cities(self, source_city: "City", target_city: "City") -> list[GroupMigrationEvent]:
         '''Uses the intercity engine to move migrants between cities.'''

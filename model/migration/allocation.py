@@ -2,7 +2,7 @@
 
 
 class MigrationAllocator:
-    """Draw migration counts and safely transfer populations."""
+    """Draw migration counts and split allocation targets."""
 
     def __init__(self, rng) -> None:
         self.rng = rng
@@ -18,28 +18,26 @@ class MigrationAllocator:
             return int(self.rng.binomial(n, p))
         return int(round(n * p))
 
-    def safe_transfer(self, source_group, target_group, requested_amount: int) -> int:
-        """Move integer population safely between groups."""
-        if requested_amount <= 0:
-            return 0
-        available = max(int(source_group.size), 0)
-        moved = min(requested_amount, available)
-        if moved <= 0:
-            return 0
-        source_group.size -= moved
-        target_group.size += moved
-        return moved
-
-    def fallback_split(self, amount: int, destination_groups) -> list[tuple[int, int]]:
+    def fallback_split(self, amount: int, destination_sizes) -> list[tuple[int, int]]:
         """Split integer amount across destination groups by size share."""
-        if amount <= 0 or not destination_groups:
+        if amount <= 0:
             return []
 
-        total_size = sum(max(int(group.size), 0) for group in destination_groups)
+        sizes = []
+        for dest in destination_sizes:
+            if hasattr(dest, "size"):
+                sizes.append(max(int(dest.size), 0))
+            else:
+                sizes.append(max(int(dest), 0))
+
+        if not sizes:
+            return []
+
+        total_size = sum(sizes)
         if total_size <= 0:
-            base = amount // len(destination_groups)
-            rem = amount % len(destination_groups)
-            out = [(idx, base) for idx in range(len(destination_groups))]
+            base = amount // len(sizes)
+            rem = amount % len(sizes)
+            out = [(idx, base) for idx in range(len(sizes))]
             for idx in range(rem):
                 out[idx] = (out[idx][0], out[idx][1] + 1)
             return out
@@ -47,8 +45,8 @@ class MigrationAllocator:
         alloc: list[int] = []
         remainders: list[tuple[int, float]] = []
         assigned = 0
-        for idx, group in enumerate(destination_groups):
-            exact = amount * (max(int(group.size), 0) / total_size)
+        for idx, size in enumerate(sizes):
+            exact = amount * (size / total_size)
             floor_val = int(exact)
             alloc.append(floor_val)
             assigned += floor_val

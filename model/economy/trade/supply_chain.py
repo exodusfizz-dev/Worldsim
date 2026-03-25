@@ -29,6 +29,7 @@ class MarketSellOrder:
 class SupplyChain:
     def __init__(self, params: MarketParams, firms, cities, distance_provider, rng):
         self.p = params
+        self.state = MarketState()
         self.rng = rng
         self.firms = firms
         self.cities = cities

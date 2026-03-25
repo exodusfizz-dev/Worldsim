@@ -52,7 +52,7 @@ class IntercityMigrationEngine:
         events: list[GroupMigrationEvent] = []
         if intercity_rate <= 0:
             return events
-        if not source_city.populations or not target_city.populations:
+        if source_city.population.group_count <= 0 or target_city.population.group_count <= 0:
             return events
         if source_city.total_population <= 0:
             return events
@@ -62,23 +62,28 @@ class IntercityMigrationEngine:
             return events
 
         p_move = intercity_rate * gap * self.selector.distance_weight(
-            source_city.name, target_city.name
+            source_city.name,
+            target_city.name,
         )
         if p_move <= 0:
             return events
 
-        for source_index, source_group in enumerate(source_city.populations):
+        source_sizes = source_city.population.sizes()
+        target_sizes = target_city.population.sizes()
+
+        for source_index in range(source_city.population.group_count):
             expected_move = self.allocator.draw_count(
-                population=source_group.size,
+                population=float(source_sizes[source_index]),
                 probability=p_move,
             )
             if expected_move <= 0:
                 continue
 
-            if source_index < len(target_city.populations):
-                moved = self.allocator.safe_transfer(
-                    source_group=source_group,
-                    target_group=target_city.populations[source_index],
+            if source_index < target_city.population.group_count:
+                moved = source_city.population.apply_migration_transfer(
+                    source_index=source_index,
+                    target_population=target_city.population,
+                    target_index=source_index,
                     requested_amount=expected_move,
                 )
                 if moved > 0:
@@ -96,11 +101,12 @@ class IntercityMigrationEngine:
 
             for target_index, chunk in self.allocator.fallback_split(
                 amount=expected_move,
-                destination_groups=target_city.populations,
+                destination_sizes=target_sizes,
             ):
-                moved = self.allocator.safe_transfer(
-                    source_group=source_group,
-                    target_group=target_city.populations[target_index],
+                moved = source_city.population.apply_migration_transfer(
+                    source_index=source_index,
+                    target_population=target_city.population,
+                    target_index=target_index,
                     requested_amount=chunk,
                 )
                 if moved <= 0:
