@@ -25,7 +25,6 @@ class Migration:
         self.rng = rng
         cfg = options or MigrationOptions()
         self.options = MigrationOptions(
-            intergroup_rate=max(min(cfg.intergroup_rate, 1.0), 0.0),
             intercity_rate=max(min(cfg.intercity_rate, 1.0), 0.0),
         )
         self.distance_provider = distance_provider or NeutralDistanceProvider()
@@ -41,19 +40,6 @@ class Migration:
             allocator=self.allocator,
         )
 
-    @classmethod
-    def for_intergroup(
-        cls,
-        rng,
-        intergroup_rate: float,
-        distance_provider: DistanceProvider | None = None,
-    ) -> "Migration":
-        """Create a service with only intergroup migration enabled."""
-        return cls(
-            rng=rng,
-            options=MigrationOptions(intergroup_rate=intergroup_rate, intercity_rate=0.0),
-            distance_provider=distance_provider,
-        )
 
     @classmethod
     def for_intercity(
@@ -65,24 +51,31 @@ class Migration:
         """Create a service with only intercity migration enabled."""
         return cls(
             rng=rng,
-            options=MigrationOptions(intergroup_rate=0.0, intercity_rate=intercity_rate),
+            options=MigrationOptions(intercity_rate=intercity_rate),
             distance_provider=distance_provider,
         )
 
-    @property
-    def intergroup_rate(self) -> float:
-        return self.options.intergroup_rate
+
 
     @property
     def intercity_rate(self) -> float:
         return self.options.intercity_rate
 
-    def choose_target_city(self, source_city: "City", candidates: Sequence["City"]) -> "City | None":
+    def choose_target_city(self,
+                           source_city: "City",
+                           candidates: Sequence["City"]
+                           ) -> "City | None":
         '''Uses the intercity engine's selector to choose a target city for migration.'''
-        return self.intercity_engine.choose_target_city(source_city=source_city, candidates=candidates)
+        return self.intercity_engine.choose_target_city(
+            source_city=source_city,
+            candidates=candidates
+            )
 
 
-    def migrate_between_cities(self, source_city: "City", target_city: "City") -> list[GroupMigrationEvent]:
+    def migrate_between_cities(self,
+                               source_city: "City",
+                               target_city: "City"
+                               ) -> list[GroupMigrationEvent]:
         '''Uses the intercity engine to move migrants between cities.'''
         return self.intercity_engine.migrate_between_cities(
             source_city=source_city,

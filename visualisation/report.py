@@ -56,9 +56,3 @@ def report_provinces(country, week):
             else:
                 print("No food deficit")
             print(f"City treasury: {city.state.treasury:.2f}")
-
-            for migration in city.migrations:
-                from_group = migration.source_group_index + 1
-                to_group = migration.target_group_index + 1
-                amount = migration.amount
-                print(f"{from_group} -> {to_group}, amount: {amount:.3f}")

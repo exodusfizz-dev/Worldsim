@@ -35,10 +35,10 @@ class PopulationGenerator:
     def generate_for_city(self, city_name: str, population: int) -> PopulationSeed:
         """Generate grouped population data for one city.
 
-        ``city_name`` is currently unused but kept in signature for future customization hooks.
+        TODO: ``city_name`` is currently unused but kept in signature for future customization hooks.
         """
         del city_name
-        # TODO: Resolve unused param.
+        # TODO
 
         pop = max(int(population), 0)
         if pop > 1_000_000:

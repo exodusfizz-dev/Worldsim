@@ -4,7 +4,6 @@ from __future__ import annotations
 
 from model.city.city_data import CityData
 from model.economy import LabourMarket
-from model.migration import Migration
 
 from .city_properties import CityParams, CityState, CityProperties
 
@@ -20,11 +19,6 @@ class City(CityProperties):
 
         self.state = CityState()
 
-        intergroup_rate = self.cfg.get("migration", {}).get("intergroup_rate", 0.0005)
-        self.migration = Migration.for_intergroup(
-            rng=self.rng,
-            intergroup_rate=intergroup_rate,
-        )
 
         self.labour_market = LabourMarket(self.rng, country_policy=None)
 

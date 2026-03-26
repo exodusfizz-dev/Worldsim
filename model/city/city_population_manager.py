@@ -1,4 +1,4 @@
-"""City population manager backed by a single NumPy structured array."""
+"""City population manager that owns a single NumPy structured array."""
 
 from __future__ import annotations
 

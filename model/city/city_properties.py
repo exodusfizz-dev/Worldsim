@@ -20,7 +20,6 @@ class CityState:
     """Mutable city state updated during each simulation tick."""
 
     employed: int = 0
-    migrations: list[GroupMigrationEvent] = field(default_factory=list)
     last_food_deficit: float | None = None
     inv: dict[str, float] = field(default_factory=dict)
     treasury: float = 0.0
@@ -35,9 +34,6 @@ class CityProperties:
     def employed(self) -> int:
         return self.state.employed
 
-    @property
-    def migrations(self) -> list[GroupMigrationEvent]:
-        return self.state.migrations
 
     @property
     def last_food_deficit(self) -> float | None:

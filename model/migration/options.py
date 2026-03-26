@@ -10,6 +10,5 @@ class MigrationOptions:
     These are runtime channel options (not application config loading).
     """
 
-    intergroup_rate: float = 0.0
     intercity_rate: float = 0.0
 
