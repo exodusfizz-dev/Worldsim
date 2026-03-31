@@ -17,7 +17,7 @@ def main():
     '''
     Runs whole simulation. Also handles output by calling report function
     '''
-    # Core initialises whole simulation.
+
     core = Core(
         seed_cfg=CONFIG.get("seed"),
         city_cfg=CONFIG.get("city"),

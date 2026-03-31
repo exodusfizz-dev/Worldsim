@@ -7,7 +7,7 @@ class MigrationAllocator:
     def __init__(self, rng) -> None:
         self.rng = rng
 
-    def draw_count(self, population: float, probability: float) -> int:
+    def draw_count(self, population: int, probability: float) -> int:
         """Draw integer migrants using RNG binomial when available."""
         n = max(int(population), 0)
         p = max(min(probability, 1.0), 0.0)
@@ -15,11 +15,12 @@ class MigrationAllocator:
             return 0
 
         if self.rng is not None and hasattr(self.rng, "binomial"):
-            return int(self.rng.binomial(n, p))
+            return min(int(self.rng.binomial(n, p)), n)
         return int(round(n * p))
 
     def fallback_split(self, amount: int, destination_sizes) -> list[tuple[int, int]]:
         """Split integer amount across destination groups by size share."""
+        # TODO: Evaluate whether split should be even, and if it makes sense to have it across all groups.
         if amount <= 0:
             return []
 

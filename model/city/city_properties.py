@@ -60,6 +60,11 @@ class CityProperties:
         return self.population.group_count
 
     @property
+    def sizes(self):
+        """Population sizes per group."""
+        return self.population.sizes
+
+    @property
     def name(self) -> str:
         return self.p.name
 

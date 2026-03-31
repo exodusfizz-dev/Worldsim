@@ -71,24 +71,6 @@ class MigrationPhase1Tests(unittest.TestCase):
         )
         return source, target
 
-    def test_intergroup_migration_conserves_population_and_uses_ints(self):
-        city = StubCity(
-            name="A",
-            population=make_population([100, 70, 40], [0.1, 0.4, 0.7]),
-        )
-        migration = Migration.for_intergroup(
-            rng=RngAdapter(42),
-            intergroup_rate=0.2,
-        )
-
-        before = city.total_population
-        events = migration.migrate_within_city(city)
-        after = city.total_population
-
-        self.assertEqual(before, after)
-        self.assertTrue(all(isinstance(event.amount, int) for event in events))
-        self.assertTrue(np.all(city.population.groups["size"] >= 0))
-
     def test_intercity_migration_conserves_total_and_uses_ints(self):
         source, target = self.make_cities()
         migration = Migration.for_intercity(

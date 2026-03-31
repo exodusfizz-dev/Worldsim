@@ -47,7 +47,7 @@ class CityPopulation:
     ) -> "CityPopulation":
         group_count = len(seed.size)
         groups = np.zeros(group_count, dtype=POP_DTYPE)
-        groups["group_type"] = seed.group_type.astype(np.int16, copy=False)
+        groups["group_type"] = seed.group_type.astype(np.int8, copy=False)
         groups["size"] = seed.size.astype(np.int64, copy=False)
         groups["money"] = seed.money.astype(np.float64, copy=False)
         groups["base_healthcare"] = seed.base_healthcare.astype(np.float64, copy=False)

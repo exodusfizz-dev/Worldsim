@@ -47,24 +47,36 @@ class WorldDataLoader:
         self._prepare_indexes()
 
     def _prepare_indexes(self):
-        """Build spatial indexes for fast lookups."""
-        self.cities_gdf = self.ne_data["cities"]
-        self.provinces_gdf = self.ne_data["provinces"]
-        self.countries_gdf = self.ne_data["countries"]
+        """Build reusable indexes for fast country/province/city lookups."""
+        self.cities_gdf = self.ne_data["cities"].copy()
+        self.provinces_gdf = self.ne_data["provinces"].copy()
+        self.countries_gdf = self.ne_data["countries"].copy()
+
+        self.countries_gdf["name_lower"] = self.countries_gdf["NAME"].str.lower()
+        self.provinces_gdf["admin_lower"] = self.provinces_gdf["admin"].str.lower()
+        self.cities_gdf["adm0_lower"] = self.cities_gdf["ADM0NAME"].str.lower()
+
+        self.country_names = sorted(self.countries_gdf["NAME"].dropna().unique().tolist())
+        self.country_name_set = set(self.countries_gdf["name_lower"].dropna().tolist())
+
+        self.provinces_by_country = {
+            country_name: group.drop(columns=["admin_lower"])
+            for country_name, group in self.provinces_gdf.groupby("admin_lower", sort=False)
+        }
+        self.cities_by_country = {
+            country_name: group.drop(columns=["adm0_lower"])
+            for country_name, group in self.cities_gdf.groupby("adm0_lower", sort=False)
+        }
 
     def load_country(self, country_name: str) -> dict:
         """Load a single country's data from Natural Earth and generate simulation."""
-
-        country_row = self.countries_gdf[
-            self.countries_gdf["NAME"].str.lower() == country_name.lower()
-        ]
-
-        if country_row.empty:
+        country_key = country_name.lower()
+        if country_key not in self.country_name_set:
             raise ValueError(f"Country '{country_name}' not found in Natural Earth data")
 
         country_data = {
             "name": country_name,
-            "provinces": self._load_provinces_for_country(country_name),
+            "provinces": self._load_provinces_for_country(country_key),
         }
 
         return country_data
@@ -84,6 +96,7 @@ class WorldDataLoader:
     ) -> list[dict]:
         """Convert collated provinces based on base provinces into data for sim builder."""
         has_any_city = not cities.empty
+        city_payload_by_id = self._prepare_city_payloads(cities) if has_any_city else {}
         output_items: list[dict] = []
 
         for province in provinces.values():
@@ -99,7 +112,10 @@ class WorldDataLoader:
                     "name": province_name,
                     "area": int(geometry.area * 111 * 111),
                     "geometry": geometry,
-                    "cities": self._load_cities_for_province(city_ids=city_ids, cities_gdf=cities),
+                    "cities": self._load_cities_for_province(
+                        city_ids=city_ids,
+                        city_payload_by_id=city_payload_by_id,
+                    ),
                 }
             )
 
@@ -108,20 +124,16 @@ class WorldDataLoader:
     def _load_provinces_for_country(self, country_name: str) -> list[dict]:
         """Load provinces (admin_1) for a country."""
 
-        base_provinces = self.provinces_gdf[
-            self.provinces_gdf["admin"].str.lower() == country_name.lower()
-        ].copy()
-        cities = self.cities_gdf[
-            self.cities_gdf["ADM0NAME"].str.lower() == country_name.lower()
-        ].copy()
+        base_provinces = self.provinces_by_country.get(country_name)
+        cities = self.cities_by_country.get(country_name)
 
-        if base_provinces.empty:
+        if base_provinces is None or base_provinces.empty:
             return []
 
-        base_provinces = base_provinces.reset_index(drop=True)
+        base_provinces = base_provinces.copy().reset_index(drop=True)
         base_provinces["base_id"] = base_provinces.index.astype(int)
 
-        cities = cities.reset_index(drop=True)
+        cities = cities.copy().reset_index(drop=True) if cities is not None else gpd.GeoDataFrame()
         cities["city_id"] = cities.index.astype(int)
 
         city_assignments = assign_cities(base_provinces, cities)
@@ -141,23 +153,36 @@ class WorldDataLoader:
             cities=cities,
         )
 
+    def _prepare_city_payloads(self, cities_gdf: gpd.GeoDataFrame) -> dict[int, tuple]:
+        """Prepare immutable city payload data indexed by city_id for fast province assembly."""
+        city_count = len(cities_gdf)
+        city_payload_by_id: dict[int, tuple] = {}
+
+        for idx, city_row in enumerate(cities_gdf.itertuples(index=False)):
+            city_id = int(city_row.city_id)
+            city_name = getattr(city_row, "NAME", f"City_{idx}")
+            pop_max = getattr(city_row, "POP_MAX", 10_000)
+            population = 10_000 if pop_max is None else int(pop_max)
+            city_size_rank = idx / max(1, city_count)
+            city_payload_by_id[city_id] = (city_name, population, city_row.geometry, city_size_rank)
+
+        return city_payload_by_id
+
     def _load_cities_for_province(
         self,
         city_ids: list[int],
-        cities_gdf: gpd.GeoDataFrame,
+        city_payload_by_id: dict[int, tuple] | None,
     ) -> list[dict]:
         """Load cities (populated places) for a province."""
-
-        cities = cities_gdf[cities_gdf["city_id"].isin(city_ids)]
+        if not city_payload_by_id or not city_ids:
+            return []
 
         city_list = []
-        for idx, (_, city_row) in enumerate(cities.iterrows()):
-            city_name = city_row.get("NAME", f"City_{idx}")
-            population = int(city_row.get("POP_MAX", 10_000))
-            geometry = city_row.geometry
-            city_id = int(city_row["city_id"])
-
-            city_size_rank = idx / max(1, len(cities))
+        for city_id in city_ids:
+            payload = city_payload_by_id.get(city_id)
+            if payload is None:
+                continue
+            city_name, population, geometry, city_size_rank = payload
 
             city_data = {
                 "name": city_name,
@@ -174,7 +199,7 @@ class WorldDataLoader:
         """Load multiple countries and return as list compatible with Core.build_sim()."""
         countries_data = []
         if not country_names:
-            country_names = self.ne_data["countries"]["NAME"].tolist()
+            country_names = self.country_names
         for country_name in country_names:
             try:
                 country_data = self.load_country(country_name)

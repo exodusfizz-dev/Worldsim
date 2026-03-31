@@ -1,9 +1,9 @@
-from model.city import City, CityPopulation, PopulationGenerator
-from model.province import Province
+
 import numpy as np
-from model.economy import Firm
-from model.country import Country
-from model.location.world_data_loader import WorldDataLoader
+from model.city import PopulationGenerator
+from .build_sim import build_sim as build_sim_core
+from .shocks import Shock
+
 
 
 class Core:
@@ -39,60 +39,11 @@ class Core:
         for country in self.countries:
             country.tick()
 
-    def _build_firms(self, firms, city_id: int):
-        return [Firm.from_dict(firm_data, rng=self.rng, city_id=city_id) for firm_data in firms]
-
-    def _build_city(self, city_data):
-        pop_seed = self.population_gen.generate_for_city(
-            city_name=city_data["name"],
-            population=int(city_data.get("population_estimate", 0)),
-        )
-        population = CityPopulation.from_seed(
-            seed=pop_seed,
-            rng=self.rng,
-            cfg=self.city_cfg.get("population", {}),
-        )
-
-        firms = self._build_firms(city_data["firms"], city_id=city_data["city_id"])
-
-        return City.from_dict(
-            city_data,
-            population,
-            firms,
-            rng=self.rng,
-            cfg=self.city_cfg,
-        )
-
-    def _build_province(self, province_data):
-        cities = [self._build_city(city_data) for city_data in province_data["cities"]]
-        return Province.from_dict(province_data, cities, cfg=self.province_cfg, rng=self.rng)
-
-    def build_provinces(self, data):
-        return [self._build_province(province_data) for province_data in data["provinces"]]
-
     def build_sim(self):
         """Build simulation from Natural Earth data."""
-        loader = WorldDataLoader(
-            rng=self.rng,
-            city_cfg=self.city_cfg,
-            province_cfg=self.province_cfg,
-            country_cfg=self.country_cfg,
-            location_cfg=self.location_cfg,
-        )
+        build_sim_core(self)
 
-        countries_to_load = ["United Kingdom"]
-        data = {"countries": loader.load_world(countries_to_load)}
-
-        for country_data in data["countries"]:
-            provinces = self.build_provinces(data=country_data)
-
-            cfg = self.country_cfg
-
-            country_obj = Country.from_dict(
-                country_data,
-                provinces,
-                cfg=cfg,
-                rng=self.rng,
-            )
-
-            self.countries.append(country_obj)
+    def to_shock_or_not_to_shock(self):
+        if self.rng.choice([True, False], p=(0.01, 0.99)):
+            pass
+            # init a Shock

@@ -52,10 +52,8 @@ class IntercityMigrationEngine:
         events: list[GroupMigrationEvent] = []
         if intercity_rate <= 0:
             return events
-        if source_city.population.group_count <= 0 or target_city.population.group_count <= 0:
-            return events
-        if source_city.total_population <= 0:
-            return events
+        source_group_count = source_city.population.group_count
+        target_group_count = target_city.population.group_count
 
         gap = target_city.migration_attractiveness - source_city.migration_attractiveness
         if gap <= 0:
@@ -68,58 +66,51 @@ class IntercityMigrationEngine:
         if p_move <= 0:
             return events
 
-        source_sizes = source_city.population.sizes()
-        target_sizes = target_city.population.sizes()
+        source_sizes = source_city.population.sizes
+        target_sizes = target_city.population.sizes
 
-        for source_index in range(source_city.population.group_count):
-            expected_move = self.allocator.draw_count(
-                population=float(source_sizes[source_index]),
+        for source_index in range(source_group_count):
+            amount = self.allocator.draw_count(
+                population=source_sizes[source_index],
                 probability=p_move,
             )
-            if expected_move <= 0:
+            if amount <= 0:
                 continue
 
-            if source_index < target_city.population.group_count:
-                moved = source_city.population.apply_migration_transfer(
-                    source_index=source_index,
-                    target_population=target_city.population,
-                    target_index=source_index,
-                    requested_amount=expected_move,
+            if source_index < target_group_count:
+                source_city.population.sizes[source_index] -= amount
+                target_city.population.sizes[source_index] += amount
+
+                events.append(
+                GroupMigrationEvent(
+                    source_city=source_city.name,
+                    source_group_index=source_index,
+                    target_city=target_city.name,
+                    target_group_index=source_index,
+                    amount=int(amount),
+                    channel="intercity",
                 )
-                if moved > 0:
-                    events.append(
-                        GroupMigrationEvent(
-                            source_city=source_city.name,
-                            source_group_index=source_index,
-                            target_city=target_city.name,
-                            target_group_index=source_index,
-                            amount=moved,
-                            channel="intercity",
-                        )
-                    )
-                continue
+            )
 
-            for target_index, chunk in self.allocator.fallback_split(
-                amount=expected_move,
+                continue
+            # If the migrants cannot move to the equivalent index group, then the fallback is used.
+            for target_index, split_amount in self.allocator.fallback_split(
+                amount=amount,
                 destination_sizes=target_sizes,
             ):
-                moved = source_city.population.apply_migration_transfer(
-                    source_index=source_index,
-                    target_population=target_city.population,
-                    target_index=target_index,
-                    requested_amount=chunk,
-                )
-                if moved <= 0:
-                    continue
+                source_city.population.sizes[source_index] -= amount
+                target_city.population.sizes[target_index] += amount
+
                 events.append(
-                    GroupMigrationEvent(
-                        source_city=source_city.name,
-                        source_group_index=source_index,
-                        target_city=target_city.name,
-                        target_group_index=target_index,
-                        amount=moved,
-                        channel="intercity",
-                    )
+                GroupMigrationEvent(
+                    source_city=source_city.name,
+                    source_group_index=source_index,
+                    target_city=target_city.name,
+                    target_group_index=target_index,
+                    amount=int(split_amount),
+                    channel="intercity",
                 )
+            )
+
 
         return events
