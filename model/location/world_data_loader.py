@@ -208,3 +208,14 @@ class WorldDataLoader:
                 print(f"Warning: {e}")
 
         return countries_data
+
+    def release_resources(self) -> None:
+        """Drop large cached GeoDataFrames and indexes once loading is complete."""
+        self.ne_data = {}
+        self.cities_gdf = gpd.GeoDataFrame()
+        self.provinces_gdf = gpd.GeoDataFrame()
+        self.countries_gdf = gpd.GeoDataFrame()
+        self.provinces_by_country = {}
+        self.cities_by_country = {}
+        self.country_names = []
+        self.country_name_set = set()

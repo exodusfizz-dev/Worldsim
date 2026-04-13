@@ -5,3 +5,5 @@ __pycache__/
 data/
 .DS_Store
 agents/
+tests/profile_report.txt
+.gitignore

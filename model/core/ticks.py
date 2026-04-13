@@ -2,7 +2,6 @@
 import numpy as np
 from model.city import PopulationGenerator
 from .build_sim import build_sim as build_sim_core
-from .shocks import Shock
 
 
 

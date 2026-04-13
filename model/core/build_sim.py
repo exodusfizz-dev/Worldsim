@@ -1,5 +1,7 @@
 """Simulation build orchestration for Core."""
 
+import gc
+
 from model.city import City, CityPopulation
 from model.economy import Firm
 from model.country import Country
@@ -56,6 +58,9 @@ def build_sim(core, countries_to_load=None):
         countries_to_load = []
 
     data = {"countries": loader.load_world(countries_to_load)}
+    loader.release_resources()
+    del loader
+    gc.collect()
 
     for country_data in data["countries"]:
         provinces = build_provinces(core, data=country_data)
@@ -66,3 +71,6 @@ def build_sim(core, countries_to_load=None):
             rng=core.rng,
         )
         core.countries.append(country_obj)
+
+    del data
+    gc.collect()

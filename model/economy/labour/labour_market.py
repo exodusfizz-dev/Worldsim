@@ -50,8 +50,12 @@ class LabourMarket:
         return per_f_demand, total_demand
 
     def is_eligible(self, group_education: float, firm) -> bool:
-        """Eligibility hook for future education/skill constraints."""
-        del group_education, firm # TODO
+        """Eligibility hook for future education/skill constraints.
+        
+        TODO: Implement education/skill matching. Cities will invest treasury in schools,
+        improving group education levels. Firm skill requirements will constrain hiring.
+        Currently returns True (all groups eligible for all jobs).
+        """
         return True
 
     def _empty_result(self, group_count: int, firm_count: int):
@@ -88,7 +92,9 @@ class LabourMarket:
             reverse=True,
         )
 
-        for _ in range(5): # TODO
+        # TODO: Make iteration count configurable. Multiple passes stabilize labour market
+        # matching and ensure reasonable job distribution across supply levels.
+        for _ in range(5):
             for firm_index in firm_order:
                 if remaining_per_f_demand[firm_index] <= 0:
                     continue

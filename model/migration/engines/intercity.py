@@ -98,8 +98,8 @@ class IntercityMigrationEngine:
                 amount=amount,
                 destination_sizes=target_sizes,
             ):
-                source_city.population.sizes[source_index] -= amount
-                target_city.population.sizes[target_index] += amount
+                source_city.population.sizes[source_index] -= split_amount
+                target_city.population.sizes[target_index] += split_amount
 
                 events.append(
                 GroupMigrationEvent(

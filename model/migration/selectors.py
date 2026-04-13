@@ -61,9 +61,9 @@ class WeightedTargetSelector:
         self,
         source_attractiveness: float,
         source_city_key: str,
-        groups,
+        groups: list,
         source_index: int,
-    ):
+    ) -> list["WeightedTarget"]:
         """Return eligible weighted target groups for intracity migration."""
         return self.build_weighted_candidates(
             source_attractiveness=source_attractiveness,

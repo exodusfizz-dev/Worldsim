@@ -72,7 +72,7 @@ class City(CityProperties):
         if self.state.labour_result is None:
             return
 
-        labour_tax_rate = 0.2
+        labour_tax_rate = self.cfg.get("economy", {}).get("labour_tax_rate", 0.2)
         self.state.treasury += self.population.apply_labour_result(
             labour_result=self.state.labour_result,
             labour_tax_rate=labour_tax_rate,
@@ -85,7 +85,7 @@ class City(CityProperties):
             self.state.starving = False
             return
 
-        food_price = 5.0
+        food_price = self.cfg.get("economy", {}).get("food_price", 5.0)
         consumed, total_deficit = self.population.apply_food_allocation(
             available_food=float(self.state.inv.get("food", 0.0)),
             food_price=food_price,

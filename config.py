@@ -23,7 +23,11 @@ CONFIG = {
             {"enabled": True,
             "intergroup_rate": 0.0005, 
             # Default = 0.0005 = 0.05%
-            }
+            },
+        "economy":
+            {"labour_tax_rate": 0.2,       # Income tax on employed workers
+             "food_price": 5.0,             # Price per unit food (TODO: move to commodity market)
+             },
         },
 
     "province":

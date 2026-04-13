@@ -1,6 +1,4 @@
-'''Handles country object.'''
-
-import networkx as nx
+"""Handles country object."""
 
 from .country_properties import (CountryProperties,
                                               CountryParams)

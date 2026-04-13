@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 
-from model.migration import GroupMigrationEvent
 from model.economy.labour.labour_market import LabourClearResult
 
 

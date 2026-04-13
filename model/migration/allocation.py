@@ -18,7 +18,7 @@ class MigrationAllocator:
             return min(int(self.rng.binomial(n, p)), n)
         return int(round(n * p))
 
-    def fallback_split(self, amount: int, destination_sizes) -> list[tuple[int, int]]:
+    def fallback_split(self, amount: int, destination_sizes: list[int | object]) -> list[tuple[int, int]]:
         """Split integer amount across destination groups by size share."""
         # TODO: Evaluate whether split should be even, and if it makes sense to have it across all groups.
         if amount <= 0:
